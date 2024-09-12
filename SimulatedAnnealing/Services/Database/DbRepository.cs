@@ -16,22 +16,27 @@ namespace SimulatedAnnealing.Services.Database
         {
             _context = context;
         }
-        public State GetCurrentState()
+        public Wojewodztwa GetInitialVoievodeship()
         {
+            var bestParties = new List<string>()
+            {
+                "KOMITET WYBORCZY PRAWO I SPRAWIEDLIWOŚĆ","KOALICYJNY KOMITET WYBORCZY KOALICJA OBYWATELSKA" ,"KOALICYJNY KOMITET WYBORCZY TRZECIA DROGA POLSKA 2050 SZYMONA HOŁOWNI - POLSKIE STRONNICTWO LUDOWE","KOMITET WYBORCZY WYBORCÓW KONFEDERACJA I BEZPARTYJNI SAMORZĄDOWCY"
+            };
+
             // Startpoint => actual electoral situation
-            State currentState = new State();
-            SimulatedAnnealing.Models.Wojewodztwa? ww =  _context.Wojewodztwas
+            SimulatedAnnealing.Models.Wojewodztwa? ww = _context.Wojewodztwas
                 .Where(w => w.Nazwa == "małopolskie")
                 .Include(w => w.Okregis)
                 .ThenInclude(o => o.Powiaties)
                 .ThenInclude(p => p.Wynikis
-                    .Where(w => w.Rok == 2024))
+                    .Where(w => w.Rok == 2024 && bestParties.Contains(w.Komitet)))
                  .FirstOrDefault();
+            return ww;
+        }
 
-            currentState.ActualConfiguration = ww!;
-            currentState.ShiftNo = 0;
-            currentState.Indicator = new Indicator();
-            return currentState;
+        public Wojewodztwa GetVoievodenship()
+        {
+            throw new NotImplementedException();
         }
     }
 }

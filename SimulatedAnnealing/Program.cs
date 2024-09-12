@@ -6,6 +6,8 @@ using SimulatedAnnealing.Services.Legal;
 using SimulatedAnnealing.Services;
 using SimulatedAnnealing.Services.Math;
 using SimulatedAnnealing.Services.Painter;
+using SimulatedAnnealing;
+using SimulatedAnnealing.Services.Builders;
 
 static async void Main()
 {
@@ -14,20 +16,16 @@ static async void Main()
     var serviceProvider = DI.GetServices();
 
     var configurationBuilder = serviceProvider.GetService<ConfigurationBuilder>();
+    var stateBuilder = serviceProvider.GetService<StateBuilder>();
     var configuration = configurationBuilder!.Build();
     var dbRepository = serviceProvider.GetService<DbRepository>();
 
 
     //initialState
     Paint.Start();
-    State initialState = dbRepository!.GetCurrentState();
+    State initialState = stateBuilder.Build(isInitialState: true);
 
-    
-
-    
-    
-    
-
+    Algorithm algorithm = new Algorithm();
     
 
     //double bestSolution = Optimize(initialSolution, initialTemperature, coolingRate, stepSize, maxIterations);

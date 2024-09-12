@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SimulatedAnnealing.Services
+namespace SimulatedAnnealing.Services.Builders
 {
     public class ConfigurationBuilder
     {
@@ -28,6 +28,6 @@ namespace SimulatedAnnealing.Services
         public double CoolingRate { get; set; }
         public double StepSize { get; set; }
         public int MaxIterations { get; set; }
-        
+
     }
 }

@@ -9,7 +9,7 @@ namespace SimulatedAnnealing.Services.Math
 {
     public class Calculator
     {
-        public Indicator setNewIndicator()
+        public Indicator setNewIndicator(Dictionary<string, int> results)
         {
             return new Indicator();
         }

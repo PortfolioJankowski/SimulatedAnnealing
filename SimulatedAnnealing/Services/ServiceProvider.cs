@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SimulatedAnnealing.Services.Builders;
 using SimulatedAnnealing.Services.Database;
 using SimulatedAnnealing.Services.Geography;
 using SimulatedAnnealing.Services.Legal;
@@ -24,6 +25,7 @@ namespace SimulatedAnnealing.Services
               .AddSingleton<DHondt>()
               .AddSingleton<ElectoralCodex>()
               .AddSingleton<ConfigurationBuilder>()
+              .AddSingleton<StateBuilder>()
               .BuildServiceProvider();
         }
     }
