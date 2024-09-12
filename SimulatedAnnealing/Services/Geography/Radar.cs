@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SimulatedAnnealing.Geography
+namespace SimulatedAnnealing.Services.Geography
 {
     internal class Radar
     {

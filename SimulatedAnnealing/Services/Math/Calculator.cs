@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SimulatedAnnealing.Calculator
+namespace SimulatedAnnealing.Services.Math
 {
     public class Calculator
     {

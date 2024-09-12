@@ -62,6 +62,7 @@ public partial class SimulatedAnnealingContext : DbContext
             entity.HasOne(d => d.Okreg).WithMany(p => p.Powiaties)
                 .HasForeignKey(d => d.OkregId)
                 .HasConstraintName("FK__Powiaty__OkregID__45F365D3");
+
         });
 
         modelBuilder.Entity<Wojewodztwa>(entity =>

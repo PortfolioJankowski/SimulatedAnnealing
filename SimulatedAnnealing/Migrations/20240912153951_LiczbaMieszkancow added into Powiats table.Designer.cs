@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SimulatedAnnealing.Models;
 
@@ -11,9 +12,11 @@ using SimulatedAnnealing.Models;
 namespace SimulatedAnnealing.Migrations
 {
     [DbContext(typeof(SimulatedAnnealingContext))]
-    partial class SimulatedAnnealingContextModelSnapshot : ModelSnapshot
+    [Migration("20240912153951_LiczbaMieszkancow added into Powiats table")]
+    partial class LiczbaMieszkancowaddedintoPowiatstable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

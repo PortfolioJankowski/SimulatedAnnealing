@@ -7,31 +7,30 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SimulatedAnnealing.Database
+namespace SimulatedAnnealing.Services.Database
 {
     public class DbRepository
     {
-        private SimulatedAnnealingContext _context = new();
+        private readonly SimulatedAnnealingContext _context;
         public DbRepository(SimulatedAnnealingContext context)
         {
             _context = context;
         }
-        public async Task<State> GetCurrentStateAsync()
+        public State GetCurrentState()
         {
-            // Startpoint
+            // Startpoint => actual electoral situation
             State currentState = new State();
-            var wojewodztwo = await _context.Wojewodztwas
-                .Where(w => w.Nazwa == "Małopolskie")
+            SimulatedAnnealing.Models.Wojewodztwa? ww =  _context.Wojewodztwas
+                .Where(w => w.Nazwa == "małopolskie")
                 .Include(w => w.Okregis)
-                    .ThenInclude(o => o.Powiaties)
-                        .ThenInclude(p => p.Wynikis
-                        .Where(wynik => wynik.Rok == 2024)
-                    ).FirstOrDefaultAsync();
+                .ThenInclude(o => o.Powiaties)
+                .ThenInclude(p => p.Wynikis
+                    .Where(w => w.Rok == 2024))
+                 .FirstOrDefault();
 
-            currentState.ActualConfiguration = wojewodztwo;
+            currentState.ActualConfiguration = ww!;
             currentState.ShiftNo = 0;
             currentState.Indicator = new Indicator();
-
             return currentState;
         }
     }

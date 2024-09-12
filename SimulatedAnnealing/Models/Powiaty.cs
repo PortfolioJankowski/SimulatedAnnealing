@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace SimulatedAnnealing.Models;
 
@@ -20,6 +21,8 @@ public partial class Powiaty
     public decimal? NajwiekszaWysokoscGeograficzna { get; set; }
 
     public virtual Okregi? Okreg { get; set; }
+
+    public int LiczbaMieszkancow { get; set; }
 
     public virtual ICollection<Wyniki> Wynikis { get; set; } = new List<Wyniki>();
 }
