@@ -13,15 +13,13 @@ namespace SimulatedAnnealing.Services.Builders
     public class StateBuilder
     {
         private State _state = new State();
-        private readonly DHondt _dhondt;
         private readonly DbRepository _dbRepository;
-        private readonly Calculator _calculator;  
+        private readonly Predictor _predictor;  
 
-        public StateBuilder(DHondt dHondt, DbRepository dbRepository, Calculator calculator) 
+        public StateBuilder(DbRepository dbRepository, Predictor calculator) 
         {
-            _dhondt = dHondt;
             _dbRepository = dbRepository;
-            _calculator = calculator;   
+            _predictor = calculator;   
         }
         public void GetVoievodenship(bool isInitialState)
         {
@@ -29,12 +27,12 @@ namespace SimulatedAnnealing.Services.Builders
         }
         private void SetVotingResult()
         {
-            _state.VotingResults = _dhondt.CalculateVotingResults(_state);
+            _state.CalculateDetails();
         }
 
         private void SetIndicator()
         {
-            _state.Indicator = _calculator.setNewIndicator(_state.VotingResults);
+            _state.Indicator = _predictor.setNewIndicator(_state.ActualConfiguration);
         }
 
         public State Build(bool isInitialState)

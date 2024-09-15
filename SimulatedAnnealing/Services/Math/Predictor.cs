@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SimulatedAnnealing.Services.Math
 {
-    public class Calculator
+    public class Predictor
     {
         public Indicator setNewIndicator(Dictionary<string, int> results)
         {
@@ -26,6 +26,11 @@ namespace SimulatedAnnealing.Services.Math
         public void chooseTheWorstDistrict()
         {
 
+        }
+
+        internal Indicator setNewIndicator(Wojewodztwa actualConfiguration)
+        {
+            throw new NotImplementedException();
         }
     }
 }
