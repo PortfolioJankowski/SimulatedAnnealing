@@ -11,9 +11,9 @@ public partial class Wyniki
 
     public int? PowiatId { get; set; }
 
-    public string? Komitet { get; set; }
+    public string Komitet { get; set; }
 
-    public int? LiczbaGlosow { get; set; }
+    public int LiczbaGlosow { get; set; }
 
     public virtual Powiaty? Powiat { get; set; }
 }
