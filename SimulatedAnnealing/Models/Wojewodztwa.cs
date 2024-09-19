@@ -14,3 +14,4 @@ public partial class Wojewodztwa
     public virtual ICollection<Okregi> Okregis { get; set; } = new List<Okregi>();
 
 }
+

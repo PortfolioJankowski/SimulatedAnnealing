@@ -9,10 +9,6 @@ namespace SimulatedAnnealing.Models
     public class Indicator
     {
         public int Seats { get; set; }
-
-        // Amount of votes above the seat
-        public int Score { get; set; }
-        public Okregi BestPotentialDistrict { get; set; }
-        public Okregi WorstPotentialDistrict { get; set; }
+        public double Score { get; set; }
     }
 }

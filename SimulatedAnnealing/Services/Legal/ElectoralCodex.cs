@@ -1,4 +1,5 @@
 ﻿using SimulatedAnnealing.Models;
+using SimulatedAnnealing.Services.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,18 @@ namespace SimulatedAnnealing.Services.Legal
 {
     public class ElectoralCodex
     {
-        public bool areLegalRequrementsMet()
+        public bool areLegalRequrementsMet(State state)
         {
+            foreach (var okr in state.DistrictVotingResults.Values)
+            {
+                foreach (var result in okr.Values)
+                {
+                    if (result > 15 || result < 5)
+                    {
+                        return false;
+                    }
+                }
+            }
             return true;
         }
 

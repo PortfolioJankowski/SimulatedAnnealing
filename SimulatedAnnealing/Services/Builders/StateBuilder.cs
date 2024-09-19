@@ -32,7 +32,7 @@ namespace SimulatedAnnealing.Services.Builders
 
         private void SetIndicator()
         {
-            _state.Indicator = _predictor.setNewIndicator(_state.ActualConfiguration);
+            _state.Indicator = _predictor.setNewIndicator(_state);
         }
 
         public State Build(bool isInitialState)

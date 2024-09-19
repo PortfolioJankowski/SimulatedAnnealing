@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Models;
+using SimulatedAnnealing.Services.Config;
 using System;
 using System.Collections.Generic;
 
@@ -25,7 +26,7 @@ namespace SimulatedAnnealing.Services.Database
 
             // Startpoint => actual electoral situation
             SimulatedAnnealing.Models.Wojewodztwa? ww = _context.Wojewodztwas
-                .Where(w => w.Nazwa == "małopolskie")
+                .Where(w => w.Nazwa == Configuration.ChoosenVoievodenship)
                 .Include(w => w.Okregis)
                 .ThenInclude(o => o.Powiaties)
                 .ThenInclude(p => p.Wynikis

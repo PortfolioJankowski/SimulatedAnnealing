@@ -11,19 +11,18 @@ using SimulatedAnnealing.Services.Geography;
 using SimulatedAnnealing.Services.Legal;
 using SimulatedAnnealing.Services.Math;
 using SimulatedAnnealing.Services.Painter;
-namespace SimulatedAnnealing.Services
+namespace SimulatedAnnealing.Services.Config
 {
     public class ServiceProviderImplementation
     {
         public ServiceProvider GetServices()
         {
             return new ServiceCollection()
-              .AddSingleton<SimulatedAnnealing.Models.SimulatedAnnealingContext>()
+              .AddSingleton<Models.SimulatedAnnealingContext>()
               .AddSingleton<DbRepository>()
               .AddSingleton<Radar>()
               .AddSingleton<Predictor>()
               .AddSingleton<ElectoralCodex>()
-              .AddSingleton<ConfigurationBuilder>()
               .AddSingleton<StateBuilder>()
               .BuildServiceProvider();
         }
