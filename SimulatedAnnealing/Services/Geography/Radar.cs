@@ -3,13 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace SimulatedAnnealing.Services.Geography
 {
-    internal class Radar
+    public class Radar
     {
         private SimulatedAnnealingContext _context;
 
@@ -18,19 +19,29 @@ namespace SimulatedAnnealing.Services.Geography
             this._context = context;
         }
 
-        public bool areCountiesNeighbouring(int countyXId, int countyYId)
+        public bool AreCountiesNeighbouring(int countyXId, int countyYId)
         {
-            var sql = "EXEC CheckIfCountiesAreNeighbors @PowiatId1, @PowiatId2";
-            var result = _context.Database
-                .ExecuteSqlRaw(sql,
-                    new SqlParameter("@PowiatId1", countyXId),
-                    new SqlParameter("@PowiatId2", countyYId)
-                );
+            using (var connection = new SqlConnection(_context.Database.GetDbConnection().ConnectionString))
+            {
+                using (var command = new SqlCommand("CheckIfCountiesAreNeighbors", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
 
-            //procedure returns 1 or 0
-            return result == 1;
+                    command.Parameters.Add(new SqlParameter("@PowiatId1", countyXId));
+                    command.Parameters.Add(new SqlParameter("@PowiatId2", countyYId));
+
+                    connection.Open();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return reader.GetInt32(0) == 1;
+                        }
+                    }
+                }
+            }
+            return false;
         }
-
         public bool AreDistrictsNeighbouring(int districtXId, int districtYId)
         {
             var sql = "EXEC CheckIfDistrictsAreNeighbors @DistrictId1, @DistrictId2";
@@ -61,7 +72,7 @@ namespace SimulatedAnnealing.Services.Geography
                 {
                     if (i != j)
                     {
-                        adjacencyMatrix[i, j] = areCountiesNeighbouring(counties[i].PowiatId, counties[j].PowiatId);
+                        adjacencyMatrix[i, j] = AreCountiesNeighbouring(counties[i].PowiatId, counties[j].PowiatId);
                     }
                 }
             }

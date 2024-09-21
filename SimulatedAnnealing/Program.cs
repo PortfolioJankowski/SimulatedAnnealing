@@ -15,11 +15,16 @@ static async void Main()
     var serviceProvider = DI.GetServices();
     var stateBuilder = serviceProvider.GetService<StateBuilder>();
     var dbRepository = serviceProvider.GetService<DbRepository>();
-    
+    var radar = serviceProvider.GetService<Radar>();
     Paint.Start();
     State initialState = stateBuilder.Build(isInitialState: true);
-    State optimalState = Algorithm.Optimize(initialState);
-    Paint.ShowResults(optimalState);
+    Console.WriteLine($"Initial STATE: {initialState.Indicator.Score}");
+
+    Algorithm algorithm = new Algorithm(radar);
+    State optimalState = algorithm.Optimize(initialState);
+    Paint.ShowResults(initialState,optimalState);
+
+
 
 }
 

@@ -1,136 +1,270 @@
 ﻿using SimulatedAnnealing.Models;
 using SimulatedAnnealing.Services.Config;
 using SimulatedAnnealing.Services.Geography;
+using SimulatedAnnealing.Services.Legal;
+using SimulatedAnnealing.Services.Math;
 
 public class Algorithm
 {
-    // Objective Function: Evaluate the state based on its Indicator.Score
-    static double ObjectiveFunction(State state)
+    private readonly Radar _radar;
+    private readonly Predictor _predictor;
+    private readonly ElectoralCodex _codex;
+
+    public Algorithm(Radar radar)
     {
+        _radar = radar;
+        _predictor = new Predictor();
+        _codex = new ElectoralCodex();
+    }
+
+    public double EvaluateState(State state)
+    {
+        if (state == null) throw new ArgumentNullException(nameof(state));
         return state.Indicator.Score;
     }
 
-    // Generate a neighboring state by moving a random county between districts
-    static State GenerateNeighbor(State currentState, double stepSize)
+    public State GenerateNeighbor(State currentState, double stepSize)
     {
-        var rand = new Random();
-        var neighborState = new State
+        if (currentState == null) throw new ArgumentNullException(nameof(currentState));
+
+        
+        // Create a deep copy of the current state TODO
+        State neighborState = new State
         {
-            // Copy properties from the current state
-            ActualConfiguration = currentState.ActualConfiguration,
-            Indicator = currentState.Indicator,
-            PopulationIndex = currentState.PopulationIndex,
-            VoivodeshipSeatsAmount = currentState.VoivodeshipSeatsAmount,
-            VoivodeshipInhabitants = currentState.VoivodeshipInhabitants,
-            DistrictVotingResults = new Dictionary<Okregi, Dictionary<string, int>>(currentState.DistrictVotingResults)
+            ActualConfiguration = new Wojewodztwa
+            {
+                Okregis = currentState.ActualConfiguration.Okregis.Select(o => new Okregi
+                {
+                    OkregId = o.OkregId,
+                    Numer = o.Numer,
+                    Powiaties = o.Powiaties.Select(p => new Powiaty
+                    {
+                        PowiatId = p.PowiatId,
+                        LiczbaMieszkancow = p.LiczbaMieszkancow,
+                        
+                    }).ToList() // Deep copy of Powiaties
+                }).ToList()
+            },
+            Indicator = new Indicator
+            {
+                Score = currentState.Indicator.Score,
+                // Copy other properties of Indicator if needed
+            }
+            // Add other properties of State as necessary
         };
 
-        // Get a random district and county
-        var districts = neighborState.DistrictVotingResults.Keys.ToList();
-        if (districts.Count == 0) return neighborState; // No districts to modify
+        var random = new Random();
 
-        var selectedDistrict = districts[rand.Next(districts.Count)];
-        var counties = neighborState.DistrictVotingResults[selectedDistrict].Keys.ToList();
-        if (counties.Count == 0) return neighborState; // No counties to modify
+        var selectedDistrict = SelectRandomDistrict(neighborState, random);
+        if (selectedDistrict == null) return neighborState;
 
-        var selectedCounty = counties[rand.Next(counties.Count)];
-        // Implement logic to move a county to another district
-        MoveCountyToAnotherDistrict(neighborState, selectedCounty, selectedDistrict, rand);
+        var selectedCounty = SelectRandomCounty(neighborState, selectedDistrict, random);
+        if (selectedCounty == null) return neighborState;
 
-        // Ensure boundary conditions and legality
-        if (!AreDistrictBoundariesValid(neighborState))
+        // Move the county to another district
+        neighborState = MoveCountyToAnotherDistrict(neighborState, selectedCounty, selectedDistrict, random);
+        neighborState.CalculateDetails();
+
+        // Check if the selected district still has at least one county
+        if (neighborState.ActualConfiguration.Okregis
+            .Any(o => o.OkregId == selectedDistrict.OkregId && o.Powiaties.Count == 0))
         {
-            return currentState; // If invalid, return the current state
+            return currentState; // Return the original state if the district has no counties
         }
 
+        // Validate district configuration
+        if (!IsDistrictConfigurationValid(neighborState, selectedDistrict))
+        {
+            return currentState; // Return original state if configuration is invalid
+        }
+
+        // Check legal requirements
+        if (!_codex.AreLegalRequirementsMet(neighborState))
+        {
+            return currentState; // Return original state if legal requirements are not met
+        }
+
+        // Set new indicator based on the neighbor state
+        neighborState.Indicator = _predictor.SetNewIndicator(neighborState);
+        Console.WriteLine("return neighbor");
         return neighborState;
     }
 
-    private static void MoveCountyToAnotherDistrict(State state, string county, Okregi currentDistrict, Random rand)
+
+
+    private Okregi SelectRandomDistrict(State state, Random random)
     {
         var districts = state.DistrictVotingResults.Keys.ToList();
-        var newDistrict = districts.FirstOrDefault(d => !d.Equals(currentDistrict));
-        if (newDistrict != null)
-        {
-            // Remove county from current district
-            state.DistrictVotingResults[currentDistrict].Remove(county);
-
-            // Add county to new district
-            if (!state.DistrictVotingResults.ContainsKey(newDistrict))
-            {
-                state.DistrictVotingResults[newDistrict] = new Dictionary<string, int>();
-            }
-            state.DistrictVotingResults[newDistrict][county] = 1; // Example: add county with placeholder value
-        }
+        if (districts.Count == 0) return null;
+        return districts[random.Next(districts.Count)];
     }
 
-    private static bool AreDistrictBoundariesValid(State state)
+    private Powiaty SelectRandomCounty(State state, Okregi destinationDistrict, Random random)
     {
-        SimulatedAnnealingContext context = new();
-        Radar radar = new(context);
-        List<Powiaty> powiaty = state.ActualConfiguration.Okregis
+        var destinationDistrictCounties = destinationDistrict.Powiaties.ToList();
+
+        // Get all counties from the source district to select from
+        var sourceCounties = state.ActualConfiguration.Okregis
+            .Where(o => o.Numer == destinationDistrict.Numer)
             .SelectMany(p => p.Powiaties)
             .ToList();
 
-        foreach (var okr in state.ActualConfiguration.Okregis)
-        {
-            var powiatList = okr.Powiaties;
+        if (sourceCounties.Count == 0) return null;
 
-            foreach (var pow in powiatList)
-            {
-                foreach (var otherPow in powiatList)
-                {
-                    if (pow.PowiatId != otherPow.PowiatId)
-                    {
-                        if (!radar.areCountiesNeighbouring(pow.PowiatId, otherPow.PowiatId))
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
+        Powiaty selectedCounty;
+        int maxAttempts = 100; // Limit attempts to avoid infinite loops
+        int attempts = 0;
+
+        // Repeatedly try to find a neighboring county
+        do
+        {
+            selectedCounty = sourceCounties[random.Next(sourceCounties.Count)];
+            attempts++;
         }
+        while (attempts < maxAttempts &&
+               !IsCountyNeighbouring(selectedCounty, destinationDistrictCounties));
+
+        // Return null if no valid county is found after maximum attempts
+        return attempts < maxAttempts ? selectedCounty : null;
+    }
+
+    // Helper method to check if a county is neighboring any county in the destination district
+    private bool IsCountyNeighbouring(Powiaty county, List<Powiaty> destinationCounties)
+    {
+        return destinationCounties.Any(destinationCounty =>
+            _radar.AreCountiesNeighbouring(county.PowiatId, destinationCounty.PowiatId));
+    }
+
+    public State MoveCountyToAnotherDistrict(State state, Powiaty county, Okregi currentDistrict, Random random)
+    {
+        if (state == null || county == null || currentDistrict == null) throw new ArgumentNullException();
+
+        var newDistrict = SelectDifferentRandomDistrict(state, currentDistrict, random);
+        if (newDistrict == null) return state;
+
+        // Check if moving the county would leave the current district empty
+        if (CanMoveCounty(state, county, currentDistrict, newDistrict))
+        {
+            UpdateDistricts(state, county, currentDistrict, newDistrict);
+        }
+
+        return state;
+    }
+
+    private bool CanMoveCounty(State state, Powiaty county, Okregi currentDistrict, Okregi newDistrict)
+    {
+        // Check if moving the county would result in an empty current district
+        var currentDistrictObj = state.ActualConfiguration.Okregis.FirstOrDefault(o => o.OkregId == currentDistrict.OkregId);
+        if (currentDistrictObj != null && currentDistrictObj.Powiaties.Count <= 1)
+        {
+            return false; // Cannot move if it would leave the district empty
+        }
+
+        // Optionally, you can also check if the new district will have any additional constraints
+        // This example assumes you only care about the current district remaining valid.
         return true;
     }
 
-    // Simulated Annealing Optimization
-    public static State Optimize(State initialState)
+    private void UpdateDistricts(State state, Powiaty county, Okregi currentDistrict, Okregi newDistrict)
     {
-        State currentSolution = initialState;
-        double currentObjective = ObjectiveFunction(currentSolution);
-        State bestSolution = currentSolution;
-        double bestObjective = currentObjective;
+        var currentDistrictObj = state.ActualConfiguration.Okregis.FirstOrDefault(o => o.OkregId == currentDistrict.OkregId);
+        var newDistrictObj = state.ActualConfiguration.Okregis.FirstOrDefault(o => o.OkregId == newDistrict.OkregId);
 
+        if (currentDistrictObj != null) currentDistrictObj.Powiaties.Remove(county);
+        newDistrictObj?.Powiaties.Add(county);
+    }
+
+
+    private Okregi SelectDifferentRandomDistrict(State state, Okregi currentDistrict, Random random)
+    {
+        var districts = state.ActualConfiguration.Okregis.ToList();
+        if (districts.Count <= 1) return null;
+
+        Okregi newDistrict;
+        do
+        {
+            newDistrict = districts[random.Next(districts.Count)];
+        } while (newDistrict.OkregId == currentDistrict.OkregId);
+
+        return newDistrict;
+    }
+
+
+
+    public bool IsDistrictConfigurationValid(State state, Okregi selectedDistrict)
+    {
+        var targetDistrict = state.ActualConfiguration.Okregis.FirstOrDefault(o => o.OkregId == selectedDistrict.OkregId);
+        return targetDistrict != null && AreDistrictBoundariesValid(targetDistrict);
+    }
+
+    public bool AreDistrictBoundariesValid(Okregi okregi)
+    {
+        if (okregi.Powiaties.Count == 0) return false;
+
+        bool[] boundaryValidity = new bool[okregi.Powiaties.Count];
+
+        for (int i = 0; i < okregi.Powiaties.Count; i++)
+        {
+            var currentPowiat = okregi.Powiaties.ToList()[i];
+            boundaryValidity[i] = okregi.Powiaties
+                .Any(powiat => !powiat.PowiatId.Equals(currentPowiat.PowiatId) &&
+                               (_radar.AreCountiesNeighbouring(currentPowiat.PowiatId, powiat.PowiatId)));
+        }
+
+        return boundaryValidity.All(valid => valid);
+    }
+
+    private List<State> GenerateMultipleNeighbors(State currentState, double stepSize, int numberOfNeighbors)
+    {
+        var neighbors = new List<State>();
+        for (int i = 0; i < numberOfNeighbors; i++)
+        {
+            neighbors.Add(GenerateNeighbor(currentState, stepSize));
+        }
+        return neighbors;
+    }
+
+    // Simulated Annealing Optimization
+    public State Optimize(State initialState)
+    {
+        if (initialState == null) throw new ArgumentNullException(nameof(initialState));
+
+        //From configuration static class
         double temperature = Configuration.InitialTemperature;
         double coolingRate = Configuration.CoolingRate;
         double stepSize = Configuration.StepSize;
         int maxIterations = Configuration.MaxIterations;
+        var rand = new Random();
 
-        Random rand = new Random();
+        State currentSolution = initialState;
+        double currentObjective = EvaluateState(currentSolution);
+        State bestSolution = currentSolution;
+        double bestObjective = currentObjective;
 
         for (int iteration = 0; iteration < maxIterations; iteration++)
         {
-            State neighbor = GenerateNeighbor(currentSolution, stepSize);
-            double neighborObjective = ObjectiveFunction(neighbor);
+            // Generate multiple neighbors and choose the one with the highest objective.
+            var neighbors = GenerateMultipleNeighbors(currentSolution, stepSize, 5); // Generate 5 neighbors, for example.
+            var bestNeighbor = neighbors.OrderByDescending(EvaluateState).First(); // Choose the neighbor with the highest objective value.
+            double neighborObjective = EvaluateState(bestNeighbor);
+            
 
-            // Check if we should accept the new solution
-            if (neighborObjective < currentObjective || rand.NextDouble() < Math.Exp((currentObjective - neighborObjective) / temperature))
+            // Accept the best neighbor based on objective and temperature
+            if (neighborObjective > currentObjective ||
+                rand.NextDouble() < Math.Exp((neighborObjective - currentObjective) / temperature))
             {
-                currentSolution = neighbor;
+                currentSolution = bestNeighbor;
                 currentObjective = neighborObjective;
-
-                // Update best solution found
-                if (currentObjective < bestObjective)
-                {
+                if (currentObjective > bestObjective)
+                { 
                     bestSolution = currentSolution;
                     bestObjective = currentObjective;
                 }
             }
-
-            // Cooling
+            // Update temperature based on the cooling rate
             temperature *= coolingRate;
         }
-
         return bestSolution;
+
     }
 }

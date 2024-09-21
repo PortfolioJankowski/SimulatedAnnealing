@@ -14,23 +14,73 @@ namespace SimulatedAnnealing.Services.Painter
             Console.WriteLine("******** GERRYMANDERRING STARTING.. **********");
         }
 
-        public static void ShowResults(State state)
+        public static void ShowResults(State initialState, State bestState)
         {
-            Console.WriteLine("Optimized State Details:");
-            Console.WriteLine($"Indicator Score: {state.Indicator.Score}");
+            Console.WriteLine("*******************************************************");
+            Console.WriteLine("Comparison of Initial State and Optimized State:");
+            Console.WriteLine($"Initial Indicator Score: {initialState.Indicator.Score}");
+            Console.WriteLine($"Optimized Indicator Score: {bestState.Indicator.Score}");
+            Console.WriteLine("-------------------------------------------------------");
 
-            Console.WriteLine("District Voting Results:");
-            foreach (var district in state.DistrictVotingResults)
+            var initialDistrictResults = initialState.DistrictVotingResults;
+            var optimizedDistrictResults = bestState.DistrictVotingResults;
+
+            // Compare the voting results for each district
+            foreach (var district in optimizedDistrictResults)
             {
-                Console.WriteLine($"District: {district.Key}");
-                foreach (var politicalGroup in district.Value)
+                var initialVotes = initialDistrictResults.ContainsKey(district.Key) ? initialDistrictResults[district.Key] : new Dictionary<string, int>();
+                var optimizedVotes = district.Value;
+
+                Console.WriteLine($"District: {district.Key.Numer}");
+                foreach (var politicalGroup in optimizedVotes)
                 {
-                    Console.WriteLine($"  Political Group: {politicalGroup.Key}, Votes: {politicalGroup.Value}");
+                    var initialVoteCount = initialVotes.ContainsKey(politicalGroup.Key) ? initialVotes[politicalGroup.Key] : 0;
+                    var optimizedVoteCount = politicalGroup.Value;
+                    var voteChange = optimizedVoteCount - initialVoteCount;
+
+                    // Display vote changes
+                    Console.WriteLine($"  Political Group: {politicalGroup.Key}, Initial Votes: {initialVoteCount}, Optimized Votes: {optimizedVoteCount}, Change: {voteChange}");
                 }
+
+                // Display additional details for the district
+                Console.WriteLine("  Detailed District Changes:");
+                DisplayDistrictDetails(initialState, bestState, district.Key);
+                Console.WriteLine("-------------------------------------------------------");
             }
-            Console.WriteLine($"Population Index: {state.PopulationIndex}");
-            Console.WriteLine($"Voivodeship Seats Amount: {state.VoivodeshipSeatsAmount}");
-            Console.WriteLine($"Voivodeship Inhabitants: {state.VoivodeshipInhabitants}");
+
+            // Summary of population and seats
+            DisplayPopulationAndSeatsComparison(initialState, bestState);
+
+            Console.WriteLine("*******************************************************");
         }
+
+        private static void DisplayDistrictDetails(State initialState, State bestState, Okregi district)
+        {
+            var initialDistrict = initialState.ActualConfiguration.Okregis.FirstOrDefault(o => o.OkregId == district.OkregId);
+            var optimizedDistrict = bestState.ActualConfiguration.Okregis.FirstOrDefault(o => o.OkregId == district.OkregId);
+
+            if (initialDistrict != null && optimizedDistrict != null)
+            {
+                Console.WriteLine($"    Optimized District Counties: {string.Join(", ", optimizedDistrict.Powiaties.Select(p => p.Nazwa))}");
+            }
+            else
+            {
+                Console.WriteLine("    District data is missing in one of the states.");
+            }
+        }
+
+        private static void DisplayPopulationAndSeatsComparison(State initialState, State bestState)
+        {
+            
+            Console.WriteLine($"Optimized Population Index: {bestState.PopulationIndex}");
+            Console.WriteLine("-------------------------------------------------------");
+            
+            Console.WriteLine($"Optimized Voivodeship Seats Amount: {bestState.VoivodeshipSeatsAmount}");
+            Console.WriteLine("-------------------------------------------------------");
+           
+            Console.WriteLine($"Optimized Voivodeship Inhabitants: {bestState.VoivodeshipInhabitants}");
+            Console.WriteLine("-------------------------------------------------------");
+        }
+
     }
 }

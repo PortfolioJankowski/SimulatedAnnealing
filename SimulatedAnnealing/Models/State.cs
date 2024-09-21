@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SimulatedAnnealing.Models
 {
-    public class State
+    public class State : IPrototype
     {
         private readonly ElectoralCodex _electoralCodex = new ElectoralCodex();
         public Wojewodztwa ActualConfiguration { get; set; }
@@ -54,7 +54,33 @@ namespace SimulatedAnnealing.Models
                 .Sum(p => p.LiczbaMieszkancow);
         }
 
-       
+        public IPrototype Clone()
+        {
+            return (IPrototype)MemberwiseClone();
+         
+          
+        }
 
+        void IPrototype.CalculateDistrictResults()
+        {
+            this.DistrictVotingResults = _electoralCodex.CalculateResultsForDistricts(this.ActualConfiguration, this.VoivodeshipSeatsAmount, this.PopulationIndex);
+        }
+
+        void IPrototype.CalculatePopulationIndex()
+        {
+            this.PopulationIndex = this.VoivodeshipInhabitants / this.VoivodeshipSeatsAmount;
+        }
+
+        void IPrototype.CalculateVoievodianshipSeatsAmount()
+        {
+            this.VoivodeshipSeatsAmount = _electoralCodex.CalculateSeatsAmountForVoievodianship(this.VoivodeshipInhabitants);
+        }
+
+        void IPrototype.CalculateInhabitants()
+        {
+            this.VoivodeshipInhabitants = this.ActualConfiguration.Okregis
+                .SelectMany(o => o.Powiaties)
+                .Sum(p => p.LiczbaMieszkancow);
+        }
     }
 }

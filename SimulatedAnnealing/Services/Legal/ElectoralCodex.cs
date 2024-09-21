@@ -10,16 +10,15 @@ namespace SimulatedAnnealing.Services.Legal
 {
     public class ElectoralCodex
     {
-        public bool areLegalRequrementsMet(State state)
+        public bool AreLegalRequirementsMet(State state)
         {
-            foreach (var okr in state.DistrictVotingResults.Values)
+            state.CalculateDetails();
+            foreach (var districtResults in state.DistrictVotingResults)
             {
-                foreach (var result in okr.Values)
+                var totalResult = districtResults.Value.Values.Sum();
+                if (totalResult > 15 || totalResult < 5)
                 {
-                    if (result > 15 || result < 5)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
             return true;
@@ -144,7 +143,14 @@ namespace SimulatedAnnealing.Services.Legal
             foreach (var district in districts)
             {
                 var districtInhibtiants = district.Powiaties.Sum(x => x.LiczbaMieszkancow);
-                output.Add(districtInhibtiants / seatsDistribution[i]);
+                if (seatsDistribution[i] != 0)
+                {
+                    output.Add((double)districtInhibtiants / seatsDistribution[i]);
+                }
+                else
+                {
+                    output.Add((double)(districtInhibtiants /1));
+                }
                 i++;
                 
             }

@@ -11,14 +11,11 @@ namespace SimulatedAnnealing.Services.Math
 {
     public class Predictor
     {
-
-
-        internal Indicator setNewIndicator(State state)
+        public Indicator SetNewIndicator(State state)
         {
             var sum = GetSeatsSum(state);
             Indicator indicator = new Indicator()
             {
-
                 Seats = sum,
                 Score = sum + GetGerrymanderingScore(state),
             };
@@ -38,7 +35,6 @@ namespace SimulatedAnnealing.Services.Math
             double packingEffect = 0;
             double crackingEffect = 0;
 
-            
             double packingThreshold = Configuration.PackingThreshold;
             double crackingThreshold = Configuration.CrackingThreshold;
             double packingWeight = Configuration.PackingWeight;
@@ -63,12 +59,7 @@ namespace SimulatedAnnealing.Services.Math
                     }
                 }
             }
-
-            // Obliczenie łącznego efektu
             var TotalEffect = packingWeight * packingEffect + crackingWeight * crackingEffect;
-
-            // Aktualizacja właściwości klasy Indicator
-         
             return TotalEffect;
         }
     }
