@@ -9,13 +9,13 @@ using SimulatedAnnealing;
 using SimulatedAnnealing.Services.Builders;
 using SimulatedAnnealing.Services.Config;
 
-static async void Main()
+static void Main()
 {
     ServiceProviderImplementation DI = new ServiceProviderImplementation();
     var serviceProvider = DI.GetServices();
-    var stateBuilder = serviceProvider.GetService<StateBuilder>();
+    var stateBuilder = serviceProvider.GetService<StateBuilder>()!;
     var dbRepository = serviceProvider.GetService<DbRepository>();
-    var radar = serviceProvider.GetService<Radar>();
+    var radar = serviceProvider.GetService<Radar>()!;
     Paint.Start();
     State initialState = stateBuilder.Build(isInitialState: true);
     Console.WriteLine($"Initial STATE: {initialState.Indicator.Score}");

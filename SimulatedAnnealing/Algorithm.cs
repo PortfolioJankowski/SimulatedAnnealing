@@ -1,5 +1,6 @@
 ﻿using SimulatedAnnealing.Models;
 using SimulatedAnnealing.Services.Config;
+using SimulatedAnnealing.Services.Database;
 using SimulatedAnnealing.Services.Geography;
 using SimulatedAnnealing.Services.Legal;
 using SimulatedAnnealing.Services.Math;
@@ -9,12 +10,15 @@ public class Algorithm
     private readonly Radar _radar;
     private readonly Predictor _predictor;
     private readonly ElectoralCodex _codex;
+    private readonly DbRepository _dbRepository;
+
 
     public Algorithm(Radar radar)
     {
         _radar = radar;
         _predictor = new Predictor();
         _codex = new ElectoralCodex();
+        _dbRepository = new DbRepository(new SimulatedAnnealingContext());
     }
 
     public double EvaluateState(State state)
@@ -23,38 +27,34 @@ public class Algorithm
         return state.Indicator.Score;
     }
 
+    public Dictionary<int, List<int>> GetCurrentStateConfiguration(ICollection<Okregi> okregis){
+        Dictionary<int, List<int>> output = new();
+            foreach (var okr in okregis){
+                List<int> countiesNumbers = okr.Powiaties.Select(p => p.PowiatId).ToList();
+                output.Add(okr.OkregId, countiesNumbers);
+        }
+        return output;
+    }
+
+    public State CloneState(State currentState){
+        State neighborState = new State();
+        Wojewodztwa neighborConfiguration = new Wojewodztwa();
+        Dictionary<int, List<int>> neighborConfigurationSettings = GetCurrentStateConfiguration(currentState.ActualConfiguration.Okregis);
+        neighborState.ActualConfiguration = _dbRepository.GetVoiewodeshipClone(neighborConfigurationSettings);
+        neighborState.CalculateDetails();
+        neighborState.Indicator = _predictor.SetNewIndicator(neighborState);
+        return neighborState;
+    }
+
     public State GenerateNeighbor(State currentState, double stepSize)
     {
         if (currentState == null) throw new ArgumentNullException(nameof(currentState));
 
-        
-        // Create a deep copy of the current state TODO
-        State neighborState = new State
-        {
-            ActualConfiguration = new Wojewodztwa
-            {
-                Okregis = currentState.ActualConfiguration.Okregis.Select(o => new Okregi
-                {
-                    OkregId = o.OkregId,
-                    Numer = o.Numer,
-                    Powiaties = o.Powiaties.Select(p => new Powiaty
-                    {
-                        PowiatId = p.PowiatId,
-                        LiczbaMieszkancow = p.LiczbaMieszkancow,
-                        
-                    }).ToList() // Deep copy of Powiaties
-                }).ToList()
-            },
-            Indicator = new Indicator
-            {
-                Score = currentState.Indicator.Score,
-                // Copy other properties of Indicator if needed
-            }
-            // Add other properties of State as necessary
-        };
-
+        // Create a deep copy of the current state
+        var neighborState = CloneState(currentState);
         var random = new Random();
 
+        //TODO -> SELECT RANDOM DISTRICT, SELECT COUNTY IN THAT DISTRICT, MOVE COUNTY TO NEIGHBOUING
         var selectedDistrict = SelectRandomDistrict(neighborState, random);
         if (selectedDistrict == null) return neighborState;
 
@@ -65,37 +65,29 @@ public class Algorithm
         neighborState = MoveCountyToAnotherDistrict(neighborState, selectedCounty, selectedDistrict, random);
         neighborState.CalculateDetails();
 
-        // Check if the selected district still has at least one county
+        // VALIDATIONS
         if (neighborState.ActualConfiguration.Okregis
             .Any(o => o.OkregId == selectedDistrict.OkregId && o.Powiaties.Count == 0))
         {
-            return currentState; // Return the original state if the district has no counties
+            return currentState; 
         }
-
-        // Validate district configuration
         if (!IsDistrictConfigurationValid(neighborState, selectedDistrict))
         {
-            return currentState; // Return original state if configuration is invalid
+            return currentState; 
         }
-
-        // Check legal requirements
         if (!_codex.AreLegalRequirementsMet(neighborState))
         {
-            return currentState; // Return original state if legal requirements are not met
+            return currentState; 
         }
-
-        // Set new indicator based on the neighbor state
-        neighborState.Indicator = _predictor.SetNewIndicator(neighborState);
         Console.WriteLine("return neighbor");
         return neighborState;
     }
 
 
-
     private Okregi SelectRandomDistrict(State state, Random random)
     {
         var districts = state.DistrictVotingResults.Keys.ToList();
-        if (districts.Count == 0) return null;
+        
         return districts[random.Next(districts.Count)];
     }
 
@@ -109,7 +101,7 @@ public class Algorithm
             .SelectMany(p => p.Powiaties)
             .ToList();
 
-        if (sourceCounties.Count == 0) return null;
+        if (sourceCounties.Count == 0) return null!;
 
         Powiaty selectedCounty;
         int maxAttempts = 100; // Limit attempts to avoid infinite loops
@@ -125,7 +117,7 @@ public class Algorithm
                !IsCountyNeighbouring(selectedCounty, destinationDistrictCounties));
 
         // Return null if no valid county is found after maximum attempts
-        return attempts < maxAttempts ? selectedCounty : null;
+        return attempts < maxAttempts ? selectedCounty : null!;
     }
 
     // Helper method to check if a county is neighboring any county in the destination district
@@ -138,16 +130,14 @@ public class Algorithm
     public State MoveCountyToAnotherDistrict(State state, Powiaty county, Okregi currentDistrict, Random random)
     {
         if (state == null || county == null || currentDistrict == null) throw new ArgumentNullException();
-
         var newDistrict = SelectDifferentRandomDistrict(state, currentDistrict, random);
         if (newDistrict == null) return state;
-
+        
         // Check if moving the county would leave the current district empty
         if (CanMoveCounty(state, county, currentDistrict, newDistrict))
         {
             UpdateDistricts(state, county, currentDistrict, newDistrict);
         }
-
         return state;
     }
 
@@ -159,9 +149,6 @@ public class Algorithm
         {
             return false; // Cannot move if it would leave the district empty
         }
-
-        // Optionally, you can also check if the new district will have any additional constraints
-        // This example assumes you only care about the current district remaining valid.
         return true;
     }
 
@@ -178,8 +165,7 @@ public class Algorithm
     private Okregi SelectDifferentRandomDistrict(State state, Okregi currentDistrict, Random random)
     {
         var districts = state.ActualConfiguration.Okregis.ToList();
-        if (districts.Count <= 1) return null;
-
+        if (districts.Count <= 1) return null!;
         Okregi newDistrict;
         do
         {
@@ -208,7 +194,7 @@ public class Algorithm
             var currentPowiat = okregi.Powiaties.ToList()[i];
             boundaryValidity[i] = okregi.Powiaties
                 .Any(powiat => !powiat.PowiatId.Equals(currentPowiat.PowiatId) &&
-                               (_radar.AreCountiesNeighbouring(currentPowiat.PowiatId, powiat.PowiatId)));
+                    (_radar.AreCountiesNeighbouring(currentPowiat.PowiatId, powiat.PowiatId)));
         }
 
         return boundaryValidity.All(valid => valid);
