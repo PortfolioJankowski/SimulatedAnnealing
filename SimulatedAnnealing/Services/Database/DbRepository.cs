@@ -28,9 +28,12 @@ namespace SimulatedAnnealing.Services.Database
             SimulatedAnnealing.Models.Wojewodztwa? ww = _context.Wojewodztwas
                 .Where(w => w.Nazwa == Configuration.ChoosenVoievodenship)
                 .Include(w => w.Okregis)
-                .ThenInclude(o => o.Powiaties)
-                .ThenInclude(p => p.Wynikis
-                    .Where(w => w.Rok == 2024 && bestParties.Contains(w.Komitet)))
+                    .ThenInclude(o => o.Powiaties)
+                        .ThenInclude(p => p.Sasiedzis)
+                .Include(w => w.Okregis)
+                    .ThenInclude(p => p.Powiaties)
+                        .ThenInclude(p => p.Wynikis
+                            .Where(w => w.Rok == 2024 && bestParties.Contains(w.Komitet)))
                  .FirstOrDefault();
             return ww!;
         }

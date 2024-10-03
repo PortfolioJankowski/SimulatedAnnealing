@@ -4,6 +4,7 @@ using SimulatedAnnealing.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,91 +22,61 @@ namespace SimulatedAnnealing.Services.Geography
 
         public bool AreCountiesNeighbouring(int countyXId, int countyYId)
         {
-            using (var connection = new SqlConnection(_context.Database.GetDbConnection().ConnectionString))
-            {
-                using (var command = new SqlCommand("CheckIfCountiesAreNeighbors", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
+            var countyX = _context.Powiaties
+                .Include(p => p.Sasiedzis)
+                .FirstOrDefault(p => p.PowiatId == countyXId);
 
-                    command.Parameters.Add(new SqlParameter("@PowiatId1", countyXId));
-                    command.Parameters.Add(new SqlParameter("@PowiatId2", countyYId));
+            if (countyX == null || countyX.Sasiedzis == null) return false;
 
-                    connection.Open();
-                    using (var reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            return reader.GetInt32(0) == 1;
-                        }
-                    }
-                }
-            }
-            return false;
+            return countyX.Sasiedzis.Any(p => p.SasiadId == countyYId);
         }
-        public bool AreDistrictsNeighbouring(int districtXId, int districtYId)
-        {
-            var sql = "EXEC CheckIfDistrictsAreNeighbors @DistrictId1, @DistrictId2";
-            var result = _context.Database
-                .ExecuteSqlRaw(sql,
-                    new SqlParameter("@DistrictId1", districtXId),
-                    new SqlParameter("@DistrictId2", districtYId)
-                );   
-            return result == 1;
-        }
+
         public bool IsDistrictBoundaryUnbroken(int districtId)
         {
-            // Fetch all counties in the district
+            // Fetch all counties in the district along with their neighbors (Sasiedzis)
             var counties = _context.Powiaties
                 .Where(p => p.OkregId == districtId)
+                .Include(p => p.Sasiedzis)  // Include neighboring counties
                 .ToList();
 
             if (counties.Count == 0)
-                return false; // No counties, hence boundary cannot be unbroken
+                return false; // No counties, boundary cannot be unbroken
 
-            // Initialize a list to track adjacency
-            var adjacencyMatrix = new bool[counties.Count, counties.Count];
+            // Create a set to track visited counties
+            var visitedCounties = new HashSet<int>();
 
-            // Populate the adjacency matrix
-            for (int i = 0; i < counties.Count; i++)
-            {
-                for (int j = 0; j < counties.Count; j++)
-                {
-                    if (i != j)
-                    {
-                        adjacencyMatrix[i, j] = AreCountiesNeighbouring(counties[i].PowiatId, counties[j].PowiatId);
-                    }
-                }
-            }
+            // Start DFS or BFS from the first county in the district
+            DFS(counties[0].PowiatId, counties, visitedCounties);
 
-            // Use a graph traversal method to check if all nodes (counties) are connected
-            return IsGraphConnected(adjacencyMatrix);
+            // Check if all counties were visited (i.e., connected)
+            return visitedCounties.Count == counties.Count;
         }
 
-        // Helper method to check if the graph is connected
-        private bool IsGraphConnected(bool[,] adjacencyMatrix)
+        // Helper DFS method to traverse neighboring counties
+        private void DFS(int countyId, List<Powiaty> counties, HashSet<int> visitedCounties)
         {
-            int numberOfNodes = adjacencyMatrix.GetLength(0);
-            bool[] visited = new bool[numberOfNodes];
+            if (visitedCounties.Contains(countyId))
+                return;
 
-            // Perform DFS or BFS to mark all reachable nodes
-            void DFS(int node)
+            // Mark the county as visited
+            visitedCounties.Add(countyId);
+
+            // Get the current county from the list
+            var currentCounty = counties.FirstOrDefault(p => p.PowiatId == countyId);
+            if (currentCounty == null || currentCounty.Sasiedzis == null)
+                return;
+
+            // Traverse neighboring counties (Sasiedzis)
+            foreach (var neighbor in currentCounty.Sasiedzis)
             {
-                visited[node] = true;
-                for (int i = 0; i < numberOfNodes; i++)
+                // Only continue DFS if the neighbor is within the same district
+                if (counties.Any(c => c.PowiatId == neighbor.SasiadId))
                 {
-                    if (adjacencyMatrix[node, i] && !visited[i])
-                    {
-                        DFS(i);
-                    }
+                    DFS((int)neighbor.SasiadId!, counties, visitedCounties);
                 }
             }
-
-            // Start DFS from the first node
-            DFS(0);
-
-            // Check if all nodes were visited
-            return visited.All(v => v);
         }
+
 
     }
 }

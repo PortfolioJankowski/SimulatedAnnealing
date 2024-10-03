@@ -3,17 +3,13 @@ using System.Collections.Generic;
 
 namespace SimulatedAnnealing.Models;
 
-public partial class Wyniki
+public partial class Sasiedzi
 {
-    public int WynikiId { get; set; }
-
-    public int Rok { get; set; }
+    public int Id { get; set; }
 
     public int? PowiatId { get; set; }
 
-    public string? Komitet { get; set; }
-
-    public int? LiczbaGlosow { get; set; }
+    public int? SasiadId { get; set; }
 
     public virtual Powiaty? Powiat { get; set; }
 }

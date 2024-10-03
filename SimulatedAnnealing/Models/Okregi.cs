@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SimulatedAnnealing.Models;
 
@@ -15,8 +14,4 @@ public partial class Okregi
     public virtual ICollection<Powiaty> Powiaties { get; set; } = new List<Powiaty>();
 
     public virtual Wojewodztwa? Wojewodztwo { get; set; }
-
-    [NotMapped]
-    public int Mandaty { get; set; }
-  
 }

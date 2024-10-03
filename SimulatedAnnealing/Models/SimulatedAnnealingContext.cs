@@ -19,6 +19,8 @@ public partial class SimulatedAnnealingContext : DbContext
 
     public virtual DbSet<Powiaty> Powiaties { get; set; }
 
+    public virtual DbSet<Sasiedzi> Sasiedzis { get; set; }
+
     public virtual DbSet<Wojewodztwa> Wojewodztwas { get; set; }
 
     public virtual DbSet<Wyniki> Wynikis { get; set; }
@@ -50,10 +52,6 @@ public partial class SimulatedAnnealingContext : DbContext
             entity.ToTable("Powiaty", "Samorzad");
 
             entity.Property(e => e.PowiatId).HasColumnName("PowiatID");
-            entity.Property(e => e.NajmniejszaSzerokoscGeograficzna).HasColumnType("decimal(9, 6)");
-            entity.Property(e => e.NajmniejszaWysokoscGeograficzna).HasColumnType("decimal(9, 6)");
-            entity.Property(e => e.NajwiekszaSzerokoscGeograficzna).HasColumnType("decimal(9, 6)");
-            entity.Property(e => e.NajwiekszaWysokoscGeograficzna).HasColumnType("decimal(9, 6)");
             entity.Property(e => e.Nazwa)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -62,7 +60,21 @@ public partial class SimulatedAnnealingContext : DbContext
             entity.HasOne(d => d.Okreg).WithMany(p => p.Powiaties)
                 .HasForeignKey(d => d.OkregId)
                 .HasConstraintName("FK__Powiaty__OkregID__45F365D3");
+        });
 
+        modelBuilder.Entity<Sasiedzi>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Sasiedzi__3213E83FA7F26E9C");
+
+            entity.ToTable("Sasiedzi");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+
+            entity.HasOne(d => d.Powiat).WithMany(p => p.Sasiedzis)
+                .HasForeignKey(d => d.PowiatId)
+                .HasConstraintName("FK_Sasiedzi_PowiatID");
         });
 
         modelBuilder.Entity<Wojewodztwa>(entity =>

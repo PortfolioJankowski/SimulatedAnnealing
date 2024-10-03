@@ -57,11 +57,11 @@ namespace SimulatedAnnealing.Services.Legal
                     {
                         if (votingResult.ContainsKey(wynik.Komitet))
                         {
-                            votingResult[wynik.Komitet] += wynik.LiczbaGlosow;
+                            votingResult[wynik.Komitet] += (int)wynik.LiczbaGlosow!;
                         }
                         else
                         {
-                            votingResult[wynik.Komitet] = wynik.LiczbaGlosow;
+                            votingResult[wynik.Komitet] = (int)wynik.LiczbaGlosow!;
                         }
                     }
                 }
