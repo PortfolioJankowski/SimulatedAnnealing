@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SimulatedAnnealing.Models;
 
@@ -15,7 +16,10 @@ public partial class Powiaty
 
     public virtual Okregi? Okreg { get; set; }
 
-    public virtual ICollection<Sasiedzi> Sasiedzis { get; set; } = new List<Sasiedzi>();
+    public virtual ICollection<Sasiedzi> Sasiedzis {get; set;} = new List<Sasiedzi>();
+    
+    [NotMapped]
+    public virtual List<Powiaty> PowiatySasiadujace { get; set; } = new List<Powiaty>();
 
     public virtual ICollection<Wyniki> Wynikis { get; set; } = new List<Wyniki>();
 }

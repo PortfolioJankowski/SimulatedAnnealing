@@ -9,20 +9,22 @@ using SimulatedAnnealing;
 using SimulatedAnnealing.Services.Builders;
 using SimulatedAnnealing.Services.Config;
 
+
 static void Main()
 {
     ServiceProviderImplementation DI = new ServiceProviderImplementation();
     var serviceProvider = DI.GetServices();
     var stateBuilder = serviceProvider.GetService<StateBuilder>()!;
-    var dbRepository = serviceProvider.GetService<DbRepository>();
-    var radar = serviceProvider.GetService<Radar>()!;
+    
     Paint.Start();
     State initialState = stateBuilder.Build(isInitialState: true);
-    Console.WriteLine($"Initial STATE: {initialState.Indicator.Score}");
+    Console.WriteLine($"Initial STATE: {initialState.Indicator!.Score}");
 
-    Algorithm algorithm = new Algorithm(radar);
+    Algorithm algorithm = new Algorithm(serviceProvider.GetService<Radar>()!, serviceProvider.GetService<Predictor>()!, 
+                                        serviceProvider.GetService<ElectoralCodex>()!, serviceProvider.GetService<DbRepository>()!);
     State optimalState = algorithm.Optimize(initialState);
-    Paint.ShowResults(initialState,optimalState);
+    Console.WriteLine(optimalState.Indicator.Seats.ToString()); 
+    Console.WriteLine(optimalState.Indicator.Score.ToString());
 
 
 

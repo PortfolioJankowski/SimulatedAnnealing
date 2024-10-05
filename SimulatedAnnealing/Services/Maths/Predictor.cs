@@ -40,27 +40,41 @@ namespace SimulatedAnnealing.Services.Math
             double packingWeight = Configuration.PackingWeight;
             double crackingWeight = Configuration.CrackingWeight;
 
+            double totalVotesForChosenParty = 0; // Suma głosów dla wybranej partii
+            double totalVotes = 0; // Suma głosów we wszystkich okręgach 
+
             foreach (var district in state.ActualConfiguration.Okregis)
-            {
-                if (state.DistrictVotingResults.TryGetValue(district, out var votingResults)) //results for district Dict<party:seats>
+            {         
+                foreach (var county in district.Powiaties)
                 {
-                    if (votingResults.TryGetValue(Configuration.ChoosenPoliticalGroup, out int targetPartyVotes))
+                    var countyResults = county.Wynikis.Where(w => w.Rok == 2024).ToList();
+
+                    if (countyResults.Any())
                     {
-                        int totalVotes = votingResults.Values.Sum();
-
-                        // Procent głosów na partię docelową
-                        double targetPartyPercentage = (double)targetPartyVotes / totalVotes;
-
-                        // Ocena efektu pakowania
-                        packingEffect += System.Math.Max(0, targetPartyPercentage - packingThreshold);
-
-                        // Ocena efektu rozpadu
-                        crackingEffect += System.Math.Max(0, crackingThreshold - targetPartyPercentage);
+                        int countyVotes = countyResults.Sum(r=> r.LiczbaGlosow ?? 0) ; // Liczba głosów w powiecie
+                        var choosenPartyResult = countyResults.Where(r => r.Komitet == Configuration.ChoosenPoliticalGroup).FirstOrDefault();
+                        if (choosenPartyResult != null)
+                        {
+                            totalVotesForChosenParty += choosenPartyResult.LiczbaGlosow ?? 0;
+                        }
+                        totalVotes += countyVotes;
                     }
                 }
+
+                if (totalVotes > 0)
+                {
+                    double targetPartyPercentage = totalVotesForChosenParty / totalVotes;
+
+                    // efekt pakowania rośnie, kiedy pakowanie okręgu jest większe niż pakowanie tresholdu
+                    packingEffect += System.Math.Max(0, targetPartyPercentage - packingThreshold);
+                    crackingEffect += System.Math.Max(0, crackingThreshold - targetPartyPercentage);
+                }
             }
-            var TotalEffect = packingWeight * packingEffect + crackingWeight * crackingEffect;
-            return TotalEffect;
+
+            // Calculate total effect
+            return (packingWeight * packingEffect) + (crackingWeight * crackingEffect);
         }
+
+
     }
 }

@@ -34,7 +34,7 @@ namespace SimulatedAnnealing.Models
 
         private void CalculateDistrictResults()
         {
-            this.DistrictVotingResults = _electoralCodex.CalculateResultsForDistricts(this.ActualConfiguration, this.VoivodeshipSeatsAmount, this.PopulationIndex);
+            this.DistrictVotingResults = _electoralCodex.CalculateResultsForDistricts(this.ActualConfiguration!, this.VoivodeshipSeatsAmount, this.PopulationIndex);
         }
 
         private void CalculatePopulationIndex()
@@ -49,7 +49,7 @@ namespace SimulatedAnnealing.Models
 
         private void CalculateInhabitants()
         {
-            this.VoivodeshipInhabitants = this.ActualConfiguration.Okregis
+            this.VoivodeshipInhabitants = this.ActualConfiguration!.Okregis
                 .SelectMany(o => o.Powiaties)
                 .Sum(p => p.LiczbaMieszkancow);
         }

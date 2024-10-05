@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using SimulatedAnnealing.Services.Config;
 
 namespace SimulatedAnnealing.Models;
 
@@ -8,13 +10,15 @@ public partial class SimulatedAnnealingContext : DbContext
 {
     public SimulatedAnnealingContext()
     {
+        
     }
 
     public SimulatedAnnealingContext(DbContextOptions<SimulatedAnnealingContext> options)
         : base(options)
     {
+         
     }
-
+   
     public virtual DbSet<Okregi> Okregis { get; set; }
 
     public virtual DbSet<Powiaty> Powiaties { get; set; }
@@ -26,8 +30,7 @@ public partial class SimulatedAnnealingContext : DbContext
     public virtual DbSet<Wyniki> Wynikis { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-QVSEF8O;Database=SimulatedAnnealing;Integrated Security=True;TrustServerCertificate=True;");
+       => optionsBuilder.UseSqlServer(Configuration.Config.GetConnectionString("SimmulatedAnnealing"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -20,27 +20,21 @@ namespace SimulatedAnnealing.Services.Geography
             this._context = context;
         }
 
-        public bool AreCountiesNeighbouring(int countyXId, int countyYId)
+        public bool AreCountiesNeighbouring(Powiaty county, int neighborId)
         {
-            var countyX = _context.Powiaties
-                .Include(p => p.Sasiedzis)
-                .FirstOrDefault(p => p.PowiatId == countyXId);
-
-            if (countyX == null || countyX.Sasiedzis == null) return false;
-
-            return countyX.Sasiedzis.Any(p => p.SasiadId == countyYId);
+            return county.PowiatySasiadujace.Any(p => p.PowiatId == neighborId);
         }
 
         public bool IsDistrictBoundaryUnbroken(int districtId)
         {
-            // Fetch all counties in the district along with their neighbors (Sasiedzis)
+            // Fetch all counties in the district along with their neighboring counties (PowiatySasiadujace)
             var counties = _context.Powiaties
                 .Where(p => p.OkregId == districtId)
-                .Include(p => p.Sasiedzis)  // Include neighboring counties
+                .Include(p => p.PowiatySasiadujace) // Include neighboring counties
                 .ToList();
 
             if (counties.Count == 0)
-                return false; // No counties, boundary cannot be unbroken
+                return false; // No counties, so the boundary cannot be unbroken
 
             // Create a set to track visited counties
             var visitedCounties = new HashSet<int>();
@@ -48,7 +42,7 @@ namespace SimulatedAnnealing.Services.Geography
             // Start DFS or BFS from the first county in the district
             DFS(counties[0].PowiatId, counties, visitedCounties);
 
-            // Check if all counties were visited (i.e., connected)
+            // Check if all counties were visited (i.e., all are connected)
             return visitedCounties.Count == counties.Count;
         }
 
@@ -56,26 +50,26 @@ namespace SimulatedAnnealing.Services.Geography
         private void DFS(int countyId, List<Powiaty> counties, HashSet<int> visitedCounties)
         {
             if (visitedCounties.Contains(countyId))
-                return;
+                return; // County already visited
 
             // Mark the county as visited
             visitedCounties.Add(countyId);
 
             // Get the current county from the list
             var currentCounty = counties.FirstOrDefault(p => p.PowiatId == countyId);
-            if (currentCounty == null || currentCounty.Sasiedzis == null)
-                return;
+            if (currentCounty == null || currentCounty.PowiatySasiadujace == null)
+                return; // Safety check in case the county or its neighbors are null
 
-            // Traverse neighboring counties (Sasiedzis)
-            foreach (var neighbor in currentCounty.Sasiedzis)
+            // Traverse neighboring counties (PowiatySasiadujace) if they belong to the same district
+            foreach (var neighbor in currentCounty.PowiatySasiadujace)
             {
-                // Only continue DFS if the neighbor is within the same district
-                if (counties.Any(c => c.PowiatId == neighbor.SasiadId))
+                if (counties.Any(c => c.PowiatId == neighbor.PowiatId) && !visitedCounties.Contains(neighbor.PowiatId))
                 {
-                    DFS((int)neighbor.SasiadId!, counties, visitedCounties);
+                    DFS(neighbor.PowiatId, counties, visitedCounties); // Continue DFS for the neighbor
                 }
             }
         }
+
 
 
     }

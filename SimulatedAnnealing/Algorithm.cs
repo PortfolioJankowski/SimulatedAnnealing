@@ -13,18 +13,18 @@ public class Algorithm
     private readonly DbRepository _dbRepository;
 
 
-    public Algorithm(Radar radar)
+    public Algorithm(Radar radar, Predictor predictor, ElectoralCodex electoralCodex, DbRepository repository)
     {
         _radar = radar;
-        _predictor = new Predictor();
-        _codex = new ElectoralCodex();
-        _dbRepository = new DbRepository(new SimulatedAnnealingContext());
+        _predictor = predictor;
+        _codex = electoralCodex;
+        _dbRepository = repository;
     }
 
     public double EvaluateState(State state)
     {
         if (state == null) throw new ArgumentNullException(nameof(state));
-        return state.Indicator.Score;
+        return state.Indicator!.Score;
     }
 
     public Dictionary<int, List<int>> GetCurrentStateConfiguration(ICollection<Okregi> okregis){
@@ -39,7 +39,7 @@ public class Algorithm
     public State CloneState(State currentState){
         State neighborState = new State();
         Wojewodztwa neighborConfiguration = new Wojewodztwa();
-        Dictionary<int, List<int>> neighborConfigurationSettings = GetCurrentStateConfiguration(currentState.ActualConfiguration.Okregis);
+        Dictionary<int, List<int>> neighborConfigurationSettings = GetCurrentStateConfiguration(currentState.ActualConfiguration!.Okregis);
         neighborState.ActualConfiguration = _dbRepository.GetVoiewodeshipClone(neighborConfigurationSettings);
         neighborState.CalculateDetails();
         neighborState.Indicator = _predictor.SetNewIndicator(neighborState);
@@ -54,8 +54,6 @@ public class Algorithm
         var neighborState = CloneState(currentState);
         var random = new Random();
         neighborState.ActualConfiguration = MoveCounty(neighborState.ActualConfiguration!, random);
-        //TODO query nie działa coś z tym sprawdzaniem okręgów
-        //TODO sprawdzić czy jest na pewno minimum jeden okręg, i użyć AreDistrictBoundariesValid
       
         if (!_codex.AreLegalRequirementsMet(neighborState))
         {
@@ -77,11 +75,18 @@ public class Algorithm
             .OrderBy(p => random.Next())
             .First();
 
-        Powiaty neighboringCounty = null;
-        Okregi neighboringDistrict = null;
+        Powiaty neighboringCounty = null!;
+        Okregi neighboringDistrict = null!;
 
-        while (neighboringCounty == null)
+        //uniknięcie infinite loopa
+        int maxAttempts = 100;
+        int attempts = 0;
+
+        
+        while (neighboringCounty == null && attempts < maxAttempts)
         {
+            attempts++;
+
             // Wybierz losowy inny okręg
             neighboringDistrict = neighborConfiguration.Okregis
                 .Where(o => o.OkregId != randomDistrict.OkregId)
@@ -94,10 +99,18 @@ public class Algorithm
                 .First();
 
             // Sprawdź, czy wybrane powiaty są sąsiadami
-            if (_radar.AreCountiesNeighbouring(randomCounty.PowiatId, candidateCounty.PowiatId))
+            if (_radar.AreCountiesNeighbouring(randomCounty, candidateCounty.PowiatId))
             {
                 neighboringCounty = candidateCounty;
             }
+        }
+
+        // If no valid neighboring county was found after max attempts, return the original configuration
+        if (neighboringCounty == null)
+        {
+            // Optionally log a message or throw an exception depending on how you want to handle failure
+            Console.WriteLine("No valid neighboring county found after maximum attempts.");
+            return neighborConfiguration;
         }
 
         // Usunięcie losowego powiatu z pierwszego okręgu w neighborConfiguration
@@ -110,13 +123,13 @@ public class Algorithm
         randomDistrict.Powiaties.Add(neighboringCounty);
         neighboringDistrict.Powiaties.Add(randomCounty);
 
-    return neighborConfiguration;
-}
+        return neighborConfiguration;
+    }
+
 
     private Okregi SelectRandomDistrict(State state, Random random)
     {
-        var districts = state.DistrictVotingResults.Keys.ToList();
-        
+        var districts = state.DistrictVotingResults!.Keys.ToList();
         return districts[random.Next(districts.Count)];
     }
 
@@ -125,7 +138,7 @@ public class Algorithm
         var destinationDistrictCounties = destinationDistrict.Powiaties.ToList();
 
         // Get all counties from the source district to select from
-        var sourceCounties = state.ActualConfiguration.Okregis
+        var sourceCounties = state.ActualConfiguration!.Okregis
             .Where(o => o.Numer == destinationDistrict.Numer)
             .SelectMany(p => p.Powiaties)
             .ToList();
@@ -153,7 +166,7 @@ public class Algorithm
     private bool IsCountyNeighbouring(Powiaty county, List<Powiaty> destinationCounties)
     {
         return destinationCounties.Any(destinationCounty =>
-            _radar.AreCountiesNeighbouring(county.PowiatId, destinationCounty.PowiatId));
+            _radar.AreCountiesNeighbouring(county, destinationCounty.PowiatId));
     }
 
     public State MoveCountyToAnotherDistrict(State state, Powiaty county, Okregi currentDistrict, Random random)
@@ -173,7 +186,7 @@ public class Algorithm
     private bool CanMoveCounty(State state, Powiaty county, Okregi currentDistrict, Okregi newDistrict)
     {
         // Check if moving the county would result in an empty current district
-        var currentDistrictObj = state.ActualConfiguration.Okregis.FirstOrDefault(o => o.OkregId == currentDistrict.OkregId);
+        var currentDistrictObj = state.ActualConfiguration!.Okregis.FirstOrDefault(o => o.OkregId == currentDistrict.OkregId);
         if (currentDistrictObj != null && currentDistrictObj.Powiaties.Count <= 1)
         {
             return false; // Cannot move if it would leave the district empty
@@ -183,7 +196,7 @@ public class Algorithm
 
     private void UpdateDistricts(State state, Powiaty county, Okregi currentDistrict, Okregi newDistrict)
     {
-        var currentDistrictObj = state.ActualConfiguration.Okregis.FirstOrDefault(o => o.OkregId == currentDistrict.OkregId);
+        var currentDistrictObj = state.ActualConfiguration!.Okregis.FirstOrDefault(o => o.OkregId == currentDistrict.OkregId);
         var newDistrictObj = state.ActualConfiguration.Okregis.FirstOrDefault(o => o.OkregId == newDistrict.OkregId);
 
         if (currentDistrictObj != null) currentDistrictObj.Powiaties.Remove(county);
@@ -193,7 +206,7 @@ public class Algorithm
 
     private Okregi SelectDifferentRandomDistrict(State state, Okregi currentDistrict, Random random)
     {
-        var districts = state.ActualConfiguration.Okregis.ToList();
+        var districts = state.ActualConfiguration!.Okregis.ToList();
         if (districts.Count <= 1) return null!;
         Okregi newDistrict;
         do
@@ -203,11 +216,6 @@ public class Algorithm
 
         return newDistrict;
     }
-
-
-
-  
-
     public bool AreDistrictBoundariesValid(Okregi okregi)
     {
         if (okregi.Powiaties.Count == 0) return false;
@@ -219,7 +227,7 @@ public class Algorithm
             var currentPowiat = okregi.Powiaties.ToList()[i];
             boundaryValidity[i] = okregi.Powiaties
                 .Any(powiat => !powiat.PowiatId.Equals(currentPowiat.PowiatId) &&
-                    (_radar.AreCountiesNeighbouring(currentPowiat.PowiatId, powiat.PowiatId)));
+                    (_radar.AreCountiesNeighbouring(currentPowiat, powiat.PowiatId)));
         }
 
         return boundaryValidity.All(valid => valid);
@@ -254,6 +262,7 @@ public class Algorithm
 
         for (int iteration = 0; iteration < maxIterations; iteration++)
         {
+            Console.WriteLine(iteration);
             // Generate multiple neighbors and choose the one with the highest objective.
             var neighbors = GenerateMultipleNeighbors(currentSolution, stepSize, 5); // Generate 5 neighbors, for example.
             var bestNeighbor = neighbors.OrderByDescending(EvaluateState).First(); // Choose the neighbor with the highest objective value.
