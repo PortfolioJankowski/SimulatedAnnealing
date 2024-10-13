@@ -23,9 +23,10 @@ static void Main()
     Algorithm algorithm = new Algorithm(serviceProvider.GetService<Radar>()!, serviceProvider.GetService<Predictor>()!, 
                                         serviceProvider.GetService<ElectoralCodex>()!, serviceProvider.GetService<DbRepository>()!);
     State optimalState = algorithm.Optimize(initialState);
-    Console.WriteLine(optimalState.Indicator.Seats.ToString()); 
-    Console.WriteLine(optimalState.Indicator.Score.ToString());
 
+
+    //TODO -> poprawić paintera
+     Paint.PrintOptimalState(optimalState, initialState);
 
 
 }

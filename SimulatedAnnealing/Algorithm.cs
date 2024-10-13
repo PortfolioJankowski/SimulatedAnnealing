@@ -59,74 +59,73 @@ public class Algorithm
         {
             return currentState; 
         }
-        Console.WriteLine("return neighbor");
         return neighborState;
     }
 
-    private Wojewodztwa MoveCounty(Wojewodztwa neighborConfiguration, Random random)
+    public Wojewodztwa MoveCounty(Wojewodztwa neighborConfiguration, Random random)
     {
-        // Wybór losowego okręgu z bieżącej konfiguracji
-        Okregi randomDistrict = neighborConfiguration.Okregis
-            .OrderBy(o => random.Next())
-            .First();
-
-        // Wybór losowego powiatu z wybranego okręgu
-        var randomCounty = randomDistrict.Powiaties
-            .OrderBy(p => random.Next())
-            .First();
-
-        Powiaty neighboringCounty = null!;
-        Okregi neighboringDistrict = null!;
-
-        //uniknięcie infinite loopa
+        // Select a random district
+        Okregi randomDistrict = neighborConfiguration.Okregis.OrderBy(o => random.Next()).First();
+        // Select a random county within the chosen district
+        var randomCounty = randomDistrict.Powiaties.OrderBy(p => random.Next()).First();
+        Okregi? neighboringDistrict = null;
         int maxAttempts = 100;
         int attempts = 0;
 
-        
-        while (neighboringCounty == null && attempts < maxAttempts)
+        while (neighboringDistrict == null && attempts < maxAttempts)
         {
             attempts++;
-
-            // Wybierz losowy inny okręg
+            // Select a random neighboring district that is not the current district
             neighboringDistrict = neighborConfiguration.Okregis
                 .Where(o => o.OkregId != randomDistrict.OkregId)
                 .OrderBy(o => random.Next())
-                .First();
+                .FirstOrDefault();
 
-            // Wybierz losowy powiat z tego okręgu
-            var candidateCounty = neighboringDistrict.Powiaties
-                .OrderBy(p => random.Next())
-                .First();
-
-            // Sprawdź, czy wybrane powiaty są sąsiadami
-            if (_radar.AreCountiesNeighbouring(randomCounty, candidateCounty.PowiatId))
+            // Ensure the neighboring district exists and continues to be checked until a valid one is found
+            if (neighboringDistrict != null && _radar.IsCountyNeighbouringWithDistrict(randomCounty, neighboringDistrict))
             {
-                neighboringCounty = candidateCounty;
+                break;
+            }
+            else
+            {
+                neighboringDistrict = null;
             }
         }
 
-        // If no valid neighboring county was found after max attempts, return the original configuration
-        if (neighboringCounty == null)
+        if (neighboringDistrict == null)
         {
-            // Optionally log a message or throw an exception depending on how you want to handle failure
-            Console.WriteLine("No valid neighboring county found after maximum attempts.");
-            return neighborConfiguration;
+            return neighborConfiguration; // No valid neighboring district found
         }
 
-        // Usunięcie losowego powiatu z pierwszego okręgu w neighborConfiguration
+        // Remove the random county from the current district
         randomDistrict.Powiaties.Remove(randomCounty);
 
-        // Usunięcie sąsiadującego powiatu z drugiego okręgu w neighborConfiguration
-        neighboringDistrict.Powiaties.Remove(neighboringCounty);
-
-        // Dodanie powiatów do odpowiednich okręgów w neighborConfiguration
-        randomDistrict.Powiaties.Add(neighboringCounty);
+        // Add the random county to the neighboring district 
         neighboringDistrict.Powiaties.Add(randomCounty);
 
-        return neighborConfiguration;
+        // Check if the boundaries remain unbroken
+        if (_radar.IsDistrictBoundaryUnbroken(randomDistrict) && _radar.IsDistrictBoundaryUnbroken(neighboringDistrict))
+        {
+            foreach (var dist in neighborConfiguration.Okregis)
+            {
+                if (!_radar.IsDistrictBoundaryUnbroken(dist))
+                {
+                    
+                    return RestoreOriginalConfiguration(neighborConfiguration, randomDistrict, neighboringDistrict, randomCounty);
+                }
+            }
+            return neighborConfiguration; // New configuration is valid
+        }
+
+        return RestoreOriginalConfiguration(neighborConfiguration, randomDistrict, neighboringDistrict, randomCounty);
     }
 
-
+    private Wojewodztwa RestoreOriginalConfiguration(Wojewodztwa config, Okregi randomDistrict, Okregi neighboringDistrict, Powiaty randomCounty)
+    { 
+        randomDistrict.Powiaties.Add(randomCounty);
+        neighboringDistrict.Powiaties.Remove(randomCounty);
+        return config;
+    }
     private Okregi SelectRandomDistrict(State state, Random random)
     {
         var districts = state.DistrictVotingResults!.Keys.ToList();
@@ -262,12 +261,11 @@ public class Algorithm
 
         for (int iteration = 0; iteration < maxIterations; iteration++)
         {
-            Console.WriteLine(iteration);
             // Generate multiple neighbors and choose the one with the highest objective.
             var neighbors = GenerateMultipleNeighbors(currentSolution, stepSize, 5); // Generate 5 neighbors, for example.
             var bestNeighbor = neighbors.OrderByDescending(EvaluateState).First(); // Choose the neighbor with the highest objective value.
             double neighborObjective = EvaluateState(bestNeighbor);
-            
+            Console.WriteLine(neighborObjective);
 
             // Accept the best neighbor based on objective and temperature
             if (neighborObjective > currentObjective ||
@@ -276,7 +274,8 @@ public class Algorithm
                 currentSolution = bestNeighbor;
                 currentObjective = neighborObjective;
                 if (currentObjective > bestObjective)
-                { 
+                {
+                    
                     bestSolution = currentSolution;
                     bestObjective = currentObjective;
                 }

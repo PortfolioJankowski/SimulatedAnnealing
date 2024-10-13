@@ -12,7 +12,7 @@ namespace SimulatedAnnealing.Services.Legal
     {
         public bool AreLegalRequirementsMet(State state)
         {
-            state.CalculateDetails();
+
             foreach (var districtResults in state.DistrictVotingResults)
             {
                 var totalResult = districtResults.Value.Values.Sum();
@@ -96,6 +96,14 @@ namespace SimulatedAnnealing.Services.Legal
                 }
 
                 results[district] = seatsResult;
+                if (seatsResult.TryGetValue(Configuration.ChoosenPoliticalGroup, out var seats))
+                {
+                    district.PartySeats = seats; // Assigning the number of seats for the chosen political group
+                }
+                else
+                {
+                    district.PartySeats = 0; // If the chosen political group has no seats, set to 0
+                }
             }
 
             return results;
