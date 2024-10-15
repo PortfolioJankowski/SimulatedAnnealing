@@ -10,15 +10,16 @@ public partial class SimulatedAnnealingContext : DbContext
 {
     public SimulatedAnnealingContext()
     {
-        
     }
 
     public SimulatedAnnealingContext(DbContextOptions<SimulatedAnnealingContext> options)
         : base(options)
     {
-         
     }
-   
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+     => optionsBuilder.UseSqlServer(Configuration.Config.GetConnectionString("SimmulatedAnnealing"));
+    public virtual DbSet<GerrymanderingResult> GerrymanderingResults { get; set; }
+
     public virtual DbSet<Okregi> Okregis { get; set; }
 
     public virtual DbSet<Powiaty> Powiaties { get; set; }
@@ -29,11 +30,21 @@ public partial class SimulatedAnnealingContext : DbContext
 
     public virtual DbSet<Wyniki> Wynikis { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-       => optionsBuilder.UseSqlServer(Configuration.Config.GetConnectionString("SimmulatedAnnealing"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<GerrymanderingResult>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Gerryman__3214EC07ADBF4BA8");
+
+            entity.Property(e => e.ChoosenParty)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
+
         modelBuilder.Entity<Okregi>(entity =>
         {
             entity.HasKey(e => e.OkregId).HasName("PK__Okregi__3D80556FD736023B");

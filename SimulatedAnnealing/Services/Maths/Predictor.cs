@@ -24,7 +24,7 @@ namespace SimulatedAnnealing.Services.Math
 
         private int GetSeatsSum(State state)
         {
-            return state.DistrictVotingResults.Values
+            return state.DistrictVotingResults!.Values
                 .SelectMany(district => district)
                 .Where(wyniki => wyniki.Key == Configuration.ChoosenPoliticalGroup)
                 .Sum(mandaty => mandaty.Value);
@@ -43,7 +43,7 @@ namespace SimulatedAnnealing.Services.Math
             double totalVotesForChosenParty = 0; // Suma głosów dla wybranej partii
             double totalVotes = 0; // Suma głosów we wszystkich okręgach 
 
-            foreach (var district in state.ActualConfiguration.Okregis)
+            foreach (var district in state.ActualConfiguration!.Okregis)
             {         
                 foreach (var county in district.Powiaties)
                 {

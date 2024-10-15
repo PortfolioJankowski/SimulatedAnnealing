@@ -23,10 +23,12 @@ static void Main()
     Algorithm algorithm = new Algorithm(serviceProvider.GetService<Radar>()!, serviceProvider.GetService<Predictor>()!, 
                                         serviceProvider.GetService<ElectoralCodex>()!, serviceProvider.GetService<DbRepository>()!);
     State optimalState = algorithm.Optimize(initialState);
+    
+    var dbRepository = serviceProvider.GetService<DbRepository>()!;
+    dbRepository.SaveStateAsync(optimalState, initialState);
 
 
-
-     Paint.PrintOptimalState(optimalState, initialState);
+     
 
 
 }

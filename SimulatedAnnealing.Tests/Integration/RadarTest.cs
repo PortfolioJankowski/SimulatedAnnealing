@@ -20,11 +20,11 @@ namespace SimulatedAnnealing.Tests.Integration
         public void IsDistrictBoundaryUnbroken_ShouldReturnExpectedResult_WhenGivenDistrict(string[] chosenCounties, bool expectedResult)
         {
             // Arrange
-            using var context = new SimulatedAnnealingContext(); 
+            using var context = new SimulatedAnnealingContext();
             var counties = context.Powiaties.Where(c => chosenCounties.Contains(c.Nazwa)).ToList();
             var allCounties = context.Powiaties.ToList();
 
-                
+
             var district = new Okregi { Powiaties = counties };
             var neighborsDict = context.Sasiedzis
                 .GroupBy(s => s.PowiatId ?? 0)
@@ -44,7 +44,7 @@ namespace SimulatedAnnealing.Tests.Integration
             // Assert the expected result
             result.Should().Be(expectedResult);
         }
-      
+
 
 
     }

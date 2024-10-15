@@ -31,7 +31,7 @@ namespace SimulatedAnnealing.Services.Config
         public const double InitialTemperature = 1000;
         public const double CoolingRate = 0.99;
         public const double StepSize = 1.0;
-        public const int MaxIterations = 1000;
+        public const int MaxIterations = 1;
 
 
         public const double PackingThreshold = 0.35; // Próg dla pakowania
@@ -47,6 +47,7 @@ namespace SimulatedAnnealing.Services.Config
 
         public const string ChoosenPoliticalGroup = "KOMITET WYBORCZY PRAWO I SPRAWIEDLIWOŚĆ";
         public const string ChoosenVoievodenship = "małopolskie";
+        public const int ElectoralYear = 2024;
 
 
            

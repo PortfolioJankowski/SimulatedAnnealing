@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SimulatedAnnealing.Models;
 
@@ -11,9 +12,11 @@ using SimulatedAnnealing.Models;
 namespace SimulatedAnnealing.Migrations
 {
     [DbContext(typeof(SimulatedAnnealingContext))]
-    partial class SimulatedAnnealingContextModelSnapshot : ModelSnapshot
+    [Migration("20241015203950_results table expand")]
+    partial class resultstableexpand
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,19 +78,11 @@ namespace SimulatedAnnealing.Migrations
                     b.Property<double>("PackingWeight")
                         .HasColumnType("float");
 
-                    b.Property<string>("Results")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<double>("ScoreChange")
                         .HasColumnType("float");
 
                     b.Property<double>("SeatsChange")
                         .HasColumnType("float");
-
-                    b.Property<string>("Voivodeship")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id")
                         .HasName("PK__Gerryman__3214EC07ADBF4BA8");

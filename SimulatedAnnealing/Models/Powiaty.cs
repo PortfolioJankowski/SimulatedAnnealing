@@ -16,8 +16,8 @@ public partial class Powiaty
 
     public virtual Okregi? Okreg { get; set; }
 
-    public virtual ICollection<Sasiedzi> Sasiedzis {get; set;} = new List<Sasiedzi>();
-    
+    public virtual ICollection<Sasiedzi> Sasiedzis { get; set; } = new List<Sasiedzi>();
+
     [NotMapped]
     public virtual List<Powiaty> PowiatySasiadujace { get; set; } = new List<Powiaty>();
 

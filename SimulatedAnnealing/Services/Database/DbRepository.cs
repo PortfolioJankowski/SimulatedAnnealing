@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using SimulatedAnnealing.Models;
 using SimulatedAnnealing.Services.Config;
 using System;
@@ -79,7 +80,7 @@ namespace SimulatedAnnealing.Services.Database
 
             var powiaty = _context.Powiaties
                 .Include(p => p.Wynikis
-                    .Where(w => w.Rok == 2024 && bestParties.Contains(w.Komitet!)))
+                    .Where(w => w.Rok == Configuration.ElectoralYear && bestParties.Contains(w.Komitet!)))
                 .ToList(); 
 
             var sasiedziDict = _context.Sasiedzis
@@ -131,6 +132,66 @@ namespace SimulatedAnnealing.Services.Database
             return ww;
         }
 
+        public void SaveStateAsync(State bestState, State initialState)
+        {
+            try
+            {
+                var configuration = new
+                {
+                    VoivodeshipSeatsAmount = bestState.VoivodeshipSeatsAmount,
+                    OkregiDetails = bestState.ActualConfiguration.Okregis.Select(okreg => new
+                    {
+                        OkregId = okreg.OkregId,
+                        PowiatNames = okreg.Powiaties.Select(powiat => powiat.Nazwa).ToList(),
+                    }).ToList()
+                };
+                var results = new
+                {
+                    OkregiDetails = bestState.DistrictVotingResults.Select(res => new
+                    {
+                        OkregId = res.Key.OkregId,
+                        Wyniki = res.Value.Select(votingResult => new
+                        {
+                            Party = votingResult.Key, 
+                            Votes = votingResult.Value 
+                        }).ToList() 
+                    }).ToList() 
+                };
+                // Serialize to JSON
+                string configurationJson = JsonConvert.SerializeObject(configuration, Formatting.Indented);
+                string resultsJson = JsonConvert.SerializeObject(results, Formatting.Indented);
+                var stateEntity = new GerrymanderingResult
+                {
+                    
+                    ChoosenParty = Configuration.ChoosenPoliticalGroup,
+                    CreatedAt = DateTime.Now,
+                    ElectoralYear = Configuration.ElectoralYear,
+                    Iterations = Configuration.MaxIterations,
+                    CrackingThreshold = Configuration.CrackingThreshold,
+                    CrackingWeight = Configuration.CrackingWeight,
+                    FinalScore = bestState.Indicator!.Score,
+                    FinalSeats = bestState.Indicator.Seats,
+                    InitialScore = initialState.Indicator!.Score,
+                    InitialSeats = initialState.Indicator.Seats,
+                    PackingThreshold = Configuration.PackingThreshold,
+                    PackingWeight = Configuration.PackingWeight,
+                    ScoreChange = (bestState.Indicator.Score - initialState.Indicator.Score) / initialState.Indicator.Score,
+                    SeatsChange = bestState.Indicator.Seats - initialState.Indicator.Seats,
+                    Voivodeship = Configuration.ChoosenVoievodenship,
+                    Configuration = configurationJson,
+                    Results = resultsJson
+                }; 
+                _context.ChangeTracker.Clear();
+                _context.GerrymanderingResults.Add(stateEntity);
+                 _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine($"An error occurred while saving the state: {ex.Message}");
+                throw;
+            }
+        }
 
         internal Wojewodztwa GetVoievodenship()
         {
