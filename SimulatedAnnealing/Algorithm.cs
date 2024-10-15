@@ -4,6 +4,8 @@ using SimulatedAnnealing.Services.Database;
 using SimulatedAnnealing.Services.Geography;
 using SimulatedAnnealing.Services.Legal;
 using SimulatedAnnealing.Services.Math;
+using System.Diagnostics;
+using System.Numerics;
 
 public class Algorithm
 {
@@ -38,7 +40,6 @@ public class Algorithm
 
     public State CloneState(State currentState){
         State neighborState = new State();
-        Wojewodztwa neighborConfiguration = new Wojewodztwa();
         Dictionary<int, List<int>> neighborConfigurationSettings = GetCurrentStateConfiguration(currentState.ActualConfiguration!.Okregis);
         neighborState.ActualConfiguration = _dbRepository.GetVoiewodeshipClone(neighborConfigurationSettings);
         neighborState.CalculateDetails();
@@ -53,20 +54,18 @@ public class Algorithm
         // Create a deep copy of the current state
         var neighborState = CloneState(currentState);
         var random = new Random();
-        neighborState.ActualConfiguration = MoveCounty(neighborState.ActualConfiguration!, random);
+        neighborState.ActualConfiguration = MoveCounty(neighborState.ActualConfiguration!, random, neighborState.PopulationIndex);
       
-        if (!_codex.AreLegalRequirementsMet(neighborState))
+        if (!_codex.AreLegalRequirementsMet(neighborState.ActualConfiguration, neighborState.PopulationIndex))
         {
             return currentState; 
         }
         return neighborState;
     }
 
-    public Wojewodztwa MoveCounty(Wojewodztwa neighborConfiguration, Random random)
+    public Wojewodztwa MoveCounty(Wojewodztwa neighborConfiguration, Random random, double populationIndex)
     {
-        // Select a random district
         Okregi randomDistrict = neighborConfiguration.Okregis.OrderBy(o => random.Next()).First();
-        // Select a random county within the chosen district
         var randomCounty = randomDistrict.Powiaties.OrderBy(p => random.Next()).First();
         Okregi? neighboringDistrict = null;
         int maxAttempts = 100;
@@ -75,13 +74,11 @@ public class Algorithm
         while (neighboringDistrict == null && attempts < maxAttempts)
         {
             attempts++;
-            // Select a random neighboring district that is not the current district
             neighboringDistrict = neighborConfiguration.Okregis
                 .Where(o => o.OkregId != randomDistrict.OkregId)
                 .OrderBy(o => random.Next())
                 .FirstOrDefault();
 
-            // Ensure the neighboring district exists and continues to be checked until a valid one is found
             if (neighboringDistrict != null && _radar.IsCountyNeighbouringWithDistrict(randomCounty, neighboringDistrict))
             {
                 break;
@@ -97,35 +94,31 @@ public class Algorithm
             return neighborConfiguration; // No valid neighboring district found
         }
 
-        // Remove the random county from the current district
         randomDistrict.Powiaties.Remove(randomCounty);
-
-        // Add the random county to the neighboring district 
         neighboringDistrict.Powiaties.Add(randomCounty);
 
-        // Check if the boundaries remain unbroken
         if (_radar.IsDistrictBoundaryUnbroken(randomDistrict) && _radar.IsDistrictBoundaryUnbroken(neighboringDistrict))
         {
             foreach (var dist in neighborConfiguration.Okregis)
             {
-                if (!_radar.IsDistrictBoundaryUnbroken(dist))
+                if (_radar.IsDistrictBoundaryUnbroken(dist) && _codex.AreLegalRequirementsMet(neighborConfiguration, populationIndex))
                 {
-                    
-                    return RestoreOriginalConfiguration(neighborConfiguration, randomDistrict, neighboringDistrict, randomCounty);
+                    return neighborConfiguration; // New configuration is valid
                 }
             }
-            return neighborConfiguration; // New configuration is valid
+            return RestoreOriginalConfiguration(neighborConfiguration, randomDistrict, neighboringDistrict, randomCounty);
         }
 
         return RestoreOriginalConfiguration(neighborConfiguration, randomDistrict, neighboringDistrict, randomCounty);
     }
 
     private Wojewodztwa RestoreOriginalConfiguration(Wojewodztwa config, Okregi randomDistrict, Okregi neighboringDistrict, Powiaty randomCounty)
-    { 
+    {
         randomDistrict.Powiaties.Add(randomCounty);
         neighboringDistrict.Powiaties.Remove(randomCounty);
         return config;
     }
+
     private Okregi SelectRandomDistrict(State state, Random random)
     {
         var districts = state.DistrictVotingResults!.Keys.ToList();
@@ -265,7 +258,7 @@ public class Algorithm
             var neighbors = GenerateMultipleNeighbors(currentSolution, stepSize, 5); // Generate 5 neighbors, for example.
             var bestNeighbor = neighbors.OrderByDescending(EvaluateState).First(); // Choose the neighbor with the highest objective value.
             double neighborObjective = EvaluateState(bestNeighbor);
-            Console.WriteLine(neighborObjective);
+            Console.WriteLine($"New score: {neighborObjective}");
 
             // Accept the best neighbor based on objective and temperature
             if (neighborObjective > currentObjective ||

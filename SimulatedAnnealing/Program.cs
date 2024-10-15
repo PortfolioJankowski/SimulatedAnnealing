@@ -25,7 +25,7 @@ static void Main()
     State optimalState = algorithm.Optimize(initialState);
 
 
-    //TODO -> poprawić paintera
+
      Paint.PrintOptimalState(optimalState, initialState);
 
 

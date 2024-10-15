@@ -31,7 +31,7 @@ namespace SimulatedAnnealing.Services.Config
         public const double InitialTemperature = 1000;
         public const double CoolingRate = 0.99;
         public const double StepSize = 1.0;
-        public const int MaxIterations = 10000;
+        public const int MaxIterations = 1000;
 
 
         public const double PackingThreshold = 0.35; // Próg dla pakowania

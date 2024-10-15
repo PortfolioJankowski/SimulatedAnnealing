@@ -10,17 +10,29 @@ namespace SimulatedAnnealing.Services.Legal
 {
     public class ElectoralCodex
     {
-        public bool AreLegalRequirementsMet(State state)
+        public bool AreLegalRequirementsMet(Wojewodztwa configuration, double populationIndex)
         {
-
-            foreach (var districtResults in state.DistrictVotingResults)
+            int[] districtsSeats = CalculateDistrictsSeats(configuration.Okregis, populationIndex);
+            int totalCountedSeats = districtsSeats.Sum();
+            if (totalCountedSeats != Configuration.DefaultSeatsAmount)
             {
-                var totalResult = districtResults.Value.Values.Sum();
-                if (totalResult > 15 || totalResult < 5)
+                AdjustDTO adjustDTO = new AdjustDTO()
                 {
+                    actualDistribution = districtsSeats,
+                    countedSeats = totalCountedSeats,
+                    maxSeats = Configuration.DefaultSeatsAmount,
+                    districts = configuration.Okregis,
+                };
+                districtsSeats = AdjustSeats(adjustDTO);
+            }
+            foreach (int seats in districtsSeats) 
+            { 
+                if (seats < 5 || seats > 15) 
+                { 
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -165,7 +177,7 @@ namespace SimulatedAnnealing.Services.Legal
            return output.ToArray();
         }
 
-        private int[] CalculateDistrictsSeats(ICollection<Okregi> okregis, double populationIndex)
+        public int[] CalculateDistrictsSeats(ICollection<Okregi> okregis, double populationIndex)
         {
             int[] output = new int[okregis.Count];
             List<Okregi> okregiList = okregis.ToList();

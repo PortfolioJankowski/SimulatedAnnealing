@@ -46,31 +46,31 @@ namespace SimulatedAnnealing.Services.Geography
                 return false;
             }
 
-            int[] response = new int[district.Powiaties.Count];
-            int pointer = 0;
-            foreach (var county in district.Powiaties)
+            // Using a HashSet to track visited counties
+            HashSet<int> visited = new HashSet<int>();
+            Queue<Powiaty> queue = new Queue<Powiaty>();
+
+            // Start BFS from the first county
+            var startCounty = district.Powiaties.First();
+            queue.Enqueue(startCounty);
+            visited.Add(startCounty.PowiatId);
+
+            while (queue.Count > 0)
             {
-                for (int i = 0; i < district.Powiaties.Count; i++)
+                var currentCounty = queue.Dequeue();
+
+                foreach (var neighbor in currentCounty.PowiatySasiadujace)
                 {
-                    var temp = district.Powiaties.ToArray();
-                    if (AreCountiesNeighbouring(county, temp[i].PowiatId))
+                    if (district.Powiaties.Any(p => p.PowiatId == neighbor.PowiatId) && !visited.Contains(neighbor.PowiatId))
                     {
-                        response[pointer] = 1;
-                        break;
+                        visited.Add(neighbor.PowiatId);
+                        queue.Enqueue(neighbor);
                     }
                 }
-                pointer++;
             }
 
-            for (int j = 0; j < response.Length; j++)
-            {
-                if (response[j] == 0)
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            // If all counties are visited, the district is unbroken
+            return visited.Count == district.Powiaties.Count;
         }
 
 
