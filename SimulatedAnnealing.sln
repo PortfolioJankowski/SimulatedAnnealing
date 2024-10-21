@@ -5,7 +5,9 @@ VisualStudioVersion = 17.9.34616.47
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulatedAnnealing", "SimulatedAnnealing\SimulatedAnnealing.csproj", "{792EE579-4856-43BA-A791-66578F515858}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimulatedAnnealing.Tests", "SimulatedAnnealing.Tests\SimulatedAnnealing.Tests.csproj", "{DA16AD61-1923-485F-AE58-3A4B4DC5DBDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulatedAnnealing.Tests", "SimulatedAnnealing.Tests\SimulatedAnnealing.Tests.csproj", "{DA16AD61-1923-485F-AE58-3A4B4DC5DBDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimulatedAnnealing.Server", "SimulatedAnnealing.Server\SimulatedAnnealing.Server.csproj", "{E418DE5B-8B1E-4B58-8D21-F39EACC5EAEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{DA16AD61-1923-485F-AE58-3A4B4DC5DBDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA16AD61-1923-485F-AE58-3A4B4DC5DBDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA16AD61-1923-485F-AE58-3A4B4DC5DBDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E418DE5B-8B1E-4B58-8D21-F39EACC5EAEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E418DE5B-8B1E-4B58-8D21-F39EACC5EAEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E418DE5B-8B1E-4B58-8D21-F39EACC5EAEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E418DE5B-8B1E-4B58-8D21-F39EACC5EAEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

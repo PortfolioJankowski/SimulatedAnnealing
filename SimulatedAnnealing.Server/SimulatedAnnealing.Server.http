@@ -1,0 +1,6 @@
+@SimulatedAnnealing.Server_HostAddress = http://localhost:5210
+
+GET {{SimulatedAnnealing.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

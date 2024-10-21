@@ -31,15 +31,15 @@ namespace SimulatedAnnealing.Services.Config
         public const double InitialTemperature = 1000;
         public const double CoolingRate = 0.99;
         public const double StepSize = 1.0;
-        public const int MaxIterations = 1;
+        public const int MaxIterations = 1000;
 
 
-        public const double PackingThreshold = 0.35; // Próg dla pakowania
-        public const double CrackingThreshold = 0.25; // Próg dla rozpadu
+        public const double PackingThreshold = 0.439; // Próg dla pakowania
+        public const double CrackingThreshold = 0.01; // Próg dla rozpadu
 
 
-        public const double PackingWeight = 1.5;
-        public const double CrackingWeight = 0.8;
+        public const double PackingWeight = 1.0;
+        public const double CrackingWeight = 0.01;
 
 
         public const int DefaultSeatsAmount = 39; // Domyślna liczba mandatów w okręgu
