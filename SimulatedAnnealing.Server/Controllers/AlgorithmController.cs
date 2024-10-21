@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SimulatedAnnealing.Server.Models.Variable;
+using SimulatedAnnealing.Server.Services.Behavioral;
 
 namespace SimulatedAnnealing.Server.Controllers
 {
@@ -7,15 +9,18 @@ namespace SimulatedAnnealing.Server.Controllers
     public class AlgorithmController : Controller
     {
         private readonly ILogger<AlgorithmController> _logger;
-        public AlgorithmController(ILogger<AlgorithmController> logger)
+        private readonly SimulatedAnnealingService _simulatedAnnealingService;
+        public AlgorithmController(ILogger<AlgorithmController> logger, SimulatedAnnealingService simulatedAnnealingService)
         {
             _logger = logger;
+            _simulatedAnnealingService = simulatedAnnealingService;
         }
+
         [HttpGet]
-        public string LoggerCheck()
+        public State GetOptimisedVoivodeship()
         {
-            _logger.LogInformation("Logs working.");
-            return "siema";
+            return _simulatedAnnealingService.Optimize();
         }
+
     }
 }

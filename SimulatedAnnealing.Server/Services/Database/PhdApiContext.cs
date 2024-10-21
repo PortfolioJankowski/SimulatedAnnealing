@@ -1,35 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using SimulatedAnnealing.Server.Models.Fixed;
 
-namespace SimulatedAnnealing.Server.Models;
+namespace SimulatedAnnealing.Server.Services.Database;
 
 public partial class PhdApiContext : DbContext
 {
-    public PhdApiContext()
-    {
-    }
-
     public PhdApiContext(DbContextOptions<PhdApiContext> options)
         : base(options)
     {
     }
 
     public virtual DbSet<County> Counties { get; set; }
-
     public virtual DbSet<District> Districts { get; set; }
-
     public virtual DbSet<GerrymanderingResult> GerrymanderingResults { get; set; }
-
-    public virtual DbSet<Neighbour> Neighbours { get; set; }
-
-    public virtual DbSet<Voivodship> Voivodships { get; set; }
-
+    public virtual DbSet<Neighbor> Neighbors { get; set; }
+    public virtual DbSet<Voivodeship> Voivodeships { get; set; }
     public virtual DbSet<VotingResult> VotingResults { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-QVSEF8O;Database=PhdApi;Integrated Security=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,8 +42,8 @@ public partial class PhdApiContext : DbContext
 
             entity.ToTable("Districts", "LocalGovernment");
 
-            entity.HasOne(d => d.Voivodships).WithMany(p => p.Districts)
-                .HasForeignKey(d => d.VoivodshipsId)
+            entity.HasOne(d => d.Voivodeships).WithMany(p => p.Districts)
+                .HasForeignKey(d => d.VoivodeshipsId)
                 .HasConstraintName("FK__Districts__Voivo__4F7CD00D");
         });
 
@@ -83,7 +71,7 @@ public partial class PhdApiContext : DbContext
             entity.Property(e => e.Voivodeship).HasDefaultValue("");
         });
 
-        modelBuilder.Entity<Neighbour>(entity =>
+        modelBuilder.Entity<Neighbor>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Neighbou__3213E83FF0EB9AB4");
 
@@ -91,14 +79,14 @@ public partial class PhdApiContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("id");
 
-            entity.HasOne(d => d.County).WithMany(p => p.Neighbours)
+            entity.HasOne(d => d.County).WithMany(p => p.Neighbors)
                 .HasForeignKey(d => d.CountyId)
                 .HasConstraintName("FK_Sasiedzi_PowiatID");
         });
 
-        modelBuilder.Entity<Voivodship>(entity =>
+        modelBuilder.Entity<Voivodeship>(entity =>
         {
-            entity.HasKey(e => e.VoivodshipsId).HasName("PK__Voivodsh__C28D1B0244656C55");
+            entity.HasKey(e => e.VoivodeshipsId).HasName("PK__Voivodsh__C28D1B0244656C55");
 
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
@@ -122,6 +110,5 @@ public partial class PhdApiContext : DbContext
 
         OnModelCreatingPartial(modelBuilder);
     }
-
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
