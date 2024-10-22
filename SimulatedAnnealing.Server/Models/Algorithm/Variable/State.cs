@@ -1,7 +1,7 @@
-﻿using SimulatedAnnealing.Server.Models.Fixed;
+﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using SimulatedAnnealing.Server.Services.Behavioral;
 
-namespace SimulatedAnnealing.Server.Models.Variable;
+namespace SimulatedAnnealing.Server.Models.Algorithm.Variable;
 
 public class State
 {
@@ -20,30 +20,30 @@ public class State
 
     private void CalculateDetails()
     {
-        this.CalculateInhabitants();
-        this.CalculateVoievodianshipSeatsAmount();
-        this.CalculatePopulationIndex();
-        this.CalculateDistrictResults();
+        CalculateInhabitants();
+        CalculateVoievodianshipSeatsAmount();
+        CalculatePopulationIndex();
+        CalculateDistrictResults();
     }
 
     private void CalculateDistrictResults()
     {
-        this.DistrictVotingResults = _complianceService.CalculateResultsForDistricts(this.ActualConfiguration!, this.VoivodeshipSeatsAmount, this.PopulationIndex);
+        DistrictVotingResults = _complianceService.CalculateResultsForDistricts(ActualConfiguration!, VoivodeshipSeatsAmount, PopulationIndex);
     }
 
     private void CalculatePopulationIndex()
     {
-        this.PopulationIndex = this.VoivodeshipInhabitants / this.VoivodeshipSeatsAmount;
+        PopulationIndex = VoivodeshipInhabitants / VoivodeshipSeatsAmount;
     }
 
     private void CalculateVoievodianshipSeatsAmount()
     {
-        this.VoivodeshipSeatsAmount = _complianceService.CalculateSeatsAmountForVoievodianship(this.VoivodeshipInhabitants);
+        VoivodeshipSeatsAmount = _complianceService.CalculateSeatsAmountForVoievodianship(VoivodeshipInhabitants);
     }
 
     private void CalculateInhabitants()
     {
-        this.VoivodeshipInhabitants = this.ActualConfiguration!.Districts
+        VoivodeshipInhabitants = ActualConfiguration!.Districts
             .SelectMany(d => d.Counties)
             .Sum(p => p.Inahabitants);
     }

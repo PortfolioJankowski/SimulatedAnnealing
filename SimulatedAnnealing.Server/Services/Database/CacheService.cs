@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SimulatedAnnealing.Server.Models.Fixed;
+using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using System.Configuration;
 namespace SimulatedAnnealing.Server.Services.Database;
 

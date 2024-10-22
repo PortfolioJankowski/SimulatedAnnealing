@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SimulatedAnnealing.Server.Models.Fixed;
+namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
 public partial class District
 {
@@ -36,8 +36,8 @@ public partial class District
                 {
                     visited.Add(neighbor.CountyId);
                     queue.Enqueue(neighbor);
-                }); 
-        } 
+                });
+        }
 
 
         // If all counties are visited, the district is unbroken

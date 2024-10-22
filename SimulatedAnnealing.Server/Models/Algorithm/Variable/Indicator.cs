@@ -1,4 +1,4 @@
-﻿namespace SimulatedAnnealing.Server.Models.Variable;
+﻿namespace SimulatedAnnealing.Server.Models.Algorithm.Variable;
 
 public class Indicator
 {

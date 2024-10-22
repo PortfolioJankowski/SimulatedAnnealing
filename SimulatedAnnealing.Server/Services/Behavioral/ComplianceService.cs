@@ -1,4 +1,4 @@
-﻿using SimulatedAnnealing.Server.Models.Fixed;
+﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
 namespace SimulatedAnnealing.Server.Services.Behavioral;
 public class ComplianceService

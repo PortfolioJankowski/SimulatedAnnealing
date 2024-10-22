@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SimulatedAnnealing.Server.Services.Database;
 
@@ -11,9 +12,11 @@ using SimulatedAnnealing.Server.Services.Database;
 namespace SimulatedAnnealing.Server.Migrations
 {
     [DbContext(typeof(PhdApiContext))]
-    partial class PhdApiContextModelSnapshot : ModelSnapshot
+    [Migration("20241022163923_identity")]
+    partial class identity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

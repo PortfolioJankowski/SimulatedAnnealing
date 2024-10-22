@@ -1,4 +1,4 @@
-﻿using SimulatedAnnealing.Server.Models.Variable;
+﻿using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 
 namespace SimulatedAnnealing.Server.Services.Behavioral;
 public class SimulatedAnnealingService

@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using SimulatedAnnealing.Server.Models.Authentication;
 using SimulatedAnnealing.Server.Services.Behavioral;
 using SimulatedAnnealing.Server.Services.Creational;
 using SimulatedAnnealing.Server.Services.Database;
@@ -15,6 +17,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<StateBuilder, StateBuilder>();
         services.AddScoped<ComplianceService, ComplianceService>();
         services.AddScoped<SimulatedAnnealingService, SimulatedAnnealingService>();
+        services.AddIdentity<AppUser, IdentityRole>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequiredLength = 5;
+        })
+            .AddEntityFrameworkStores<PhdApiContext>();
     }
 }
 

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using SimulatedAnnealing.Server.Models.Fixed;
+using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
+using SimulatedAnnealing.Server.Models.Authentication;
 
 namespace SimulatedAnnealing.Server.Services.Database;
 
-public partial class PhdApiContext : DbContext
+public partial class PhdApiContext : IdentityDbContext<AppUser>
 {
     public PhdApiContext(DbContextOptions<PhdApiContext> options)
         : base(options)
@@ -21,6 +24,10 @@ public partial class PhdApiContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<IdentityUserLogin<string>>().HasNoKey();
+        modelBuilder.Entity<IdentityUserRole<string>>().HasNoKey();
+        modelBuilder.Entity<IdentityUserToken<string>>().HasNoKey();
+
         modelBuilder.Entity<County>(entity =>
         {
             entity.HasKey(e => e.CountyId).HasName("PK__Counties__B68F9D973EADF06B");

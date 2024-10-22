@@ -10,14 +10,14 @@ namespace SimulatedAnnealing.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameTable(
-                name: "Neighbours",
-                newName: "Neighbors");
+            //migrationBuilder.RenameTable(
+            //    name: "Neighbours",
+            //    newName: "Neighbors");
 
-            migrationBuilder.RenameIndex(
-                name: "IX_Neighbours_CountyId",
-                table: "Neighbors",
-                newName: "IX_Neighbors_CountyId");
+            //migrationBuilder.RenameIndex(
+            //    name: "IX_Neighbours_CountyId",
+            //    table: "Neighbors",
+            //    newName: "IX_Neighbors_CountyId");
         }
 
         /// <inheritdoc />

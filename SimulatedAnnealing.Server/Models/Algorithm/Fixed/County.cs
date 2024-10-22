@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SimulatedAnnealing.Server.Models.Fixed;
+namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
 public partial class County
 {

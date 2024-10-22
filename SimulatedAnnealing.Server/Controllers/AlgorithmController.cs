@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SimulatedAnnealing.Server.Models.Variable;
+using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Services.Behavioral;
 
 namespace SimulatedAnnealing.Server.Controllers

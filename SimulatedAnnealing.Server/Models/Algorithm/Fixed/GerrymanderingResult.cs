@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SimulatedAnnealing.Server.Models.Fixed;
+namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
 public partial class GerrymanderingResult
 {
