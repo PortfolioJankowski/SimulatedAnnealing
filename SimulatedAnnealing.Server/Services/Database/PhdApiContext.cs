@@ -24,10 +24,24 @@ public partial class PhdApiContext : IdentityDbContext<AppUser>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<IdentityUserLogin<string>>().HasNoKey();
-        modelBuilder.Entity<IdentityUserRole<string>>().HasNoKey();
-        modelBuilder.Entity<IdentityUserToken<string>>().HasNoKey();
+        base.OnModelCreating(modelBuilder);
+        List<IdentityRole> roles = new List<IdentityRole>
+        {
+            new IdentityRole
+            {
+                Name = "Admin",
+                NormalizedName = "ADMIN"
+            },
+            new IdentityRole
+            {
+                Name = "User",
+                NormalizedName = "USER"
+            }
+        };
+        modelBuilder.Entity<IdentityRole>().HasData(roles);
 
+
+        
         modelBuilder.Entity<County>(entity =>
         {
             entity.HasKey(e => e.CountyId).HasName("PK__Counties__B68F9D973EADF06B");
