@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Server.Models.Authentication;
+using SimulatedAnnealing.Server.Services.Authentication;
 using SimulatedAnnealing.Server.Services.Behavioral;
 using SimulatedAnnealing.Server.Services.Creational;
 using SimulatedAnnealing.Server.Services.Database;
@@ -25,6 +26,7 @@ public static class ServiceCollectionExtensions
             options.Password.RequiredLength = 5;
         })
             .AddEntityFrameworkStores<PhdApiContext>();
+        services.AddScoped<ITokenService, TokenService>();
     }
 }
 
