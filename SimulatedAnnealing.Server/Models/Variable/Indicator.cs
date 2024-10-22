@@ -1,8 +1,7 @@
-﻿namespace SimulatedAnnealing.Server.Models.Variable
+﻿namespace SimulatedAnnealing.Server.Models.Variable;
+
+public class Indicator
 {
-    public class Indicator
-    {
-        public int Seats { get; set; }
-        public double Score { get; set; }
-    }
+    public int Seats { get; set; }
+    public double Score { get; set; }
 }

@@ -9,7 +9,7 @@ public partial class District
     public int Name { get; set; }
     public int? VoivodeshipsId { get; set; }
     public virtual ICollection<County> Counties { get; set; } = new List<County>();
-    public virtual Voivodeship? Voivodeships { get; set; }
+    public virtual Voivodeship? Voivodeship { get; set; }
 
     private bool IsDistrictBoundaryUnbroken(District district)
     {
@@ -29,16 +29,17 @@ public partial class District
         while (queue.Count > 0)
         {
             var currentCounty = queue.Dequeue();
-
-            foreach (var neighbor in currentCounty.NeighboringCounties)
-            {
-                if (district.Counties.Any(p => p.CountyId == neighbor.CountyId) && !visited.Contains(neighbor.CountyId))
+            currentCounty.NeighboringCounties
+                .Where(neighbor => district.Counties.Any(p => p.CountyId == neighbor.CountyId) && !visited.Contains(neighbor.CountyId))
+                .ToList()
+                .ForEach(neighbor =>
                 {
                     visited.Add(neighbor.CountyId);
                     queue.Enqueue(neighbor);
-                }
-            }
-        }
+                }); 
+        } 
+
+
         // If all counties are visited, the district is unbroken
         return visited.Count == district.Counties.Count;
     }

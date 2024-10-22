@@ -24,13 +24,6 @@ public partial class County
 
     private bool IsCountyNeighbouringWithDistrict(County county, District district)
     {
-        foreach (var currCounty in district.Counties )
-        {
-            if (AreCountiesNeighboring(currCounty, county.CountyId))
-            {
-                return true;
-            }
-        }
-        return false;
+        return district.Counties.Any(currCounty => AreCountiesNeighboring(currCounty, county.CountyId));
     }
 }

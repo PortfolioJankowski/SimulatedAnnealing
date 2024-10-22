@@ -42,7 +42,7 @@ public partial class PhdApiContext : DbContext
 
             entity.ToTable("Districts", "LocalGovernment");
 
-            entity.HasOne(d => d.Voivodeships).WithMany(p => p.Districts)
+            entity.HasOne(d => d.Voivodeship).WithMany(p => p.Districts)
                 .HasForeignKey(d => d.VoivodeshipsId)
                 .HasConstraintName("FK__Districts__Voivo__4F7CD00D");
         });
