@@ -1,4 +1,4 @@
-﻿namespace SimulatedAnnealing.Server.Models.Algorithm.Dto;
+﻿namespace SimulatedAnnealing.Server.Models.Authentication.Dto;
 public class NewUserDto
 {
     public string UserName { get; set; }

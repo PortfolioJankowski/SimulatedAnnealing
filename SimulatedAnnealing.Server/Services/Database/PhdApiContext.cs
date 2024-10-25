@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using SimulatedAnnealing.Server.Models.Authentication;
 
@@ -13,8 +14,9 @@ public partial class PhdApiContext : IdentityDbContext<AppUser>
     public PhdApiContext(DbContextOptions<PhdApiContext> options)
         : base(options)
     {
-    }
 
+    }
+    private readonly Dictionary<string, string> _roleNames;
     public virtual DbSet<County> Counties { get; set; }
     public virtual DbSet<District> Districts { get; set; }
     public virtual DbSet<GerrymanderingResult> GerrymanderingResults { get; set; }
@@ -24,24 +26,18 @@ public partial class PhdApiContext : IdentityDbContext<AppUser>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+    
         base.OnModelCreating(modelBuilder);
-        List<IdentityRole> roles = new List<IdentityRole>
-        {
-            new IdentityRole
+        var roles = RoleOptions.RoleNames
+            .Keys
+            .Select(key => new IdentityRole
             {
-                Name = "Admin",
-                NormalizedName = "ADMIN"
-            },
-            new IdentityRole
-            {
-                Name = "User",
-                NormalizedName = "USER"
-            }
-        };
+                Name = key.ToString(),
+                NormalizedName = RoleOptions.RoleNames[key]
+            });
+        
         modelBuilder.Entity<IdentityRole>().HasData(roles);
 
-
-        
         modelBuilder.Entity<County>(entity =>
         {
             entity.HasKey(e => e.CountyId).HasName("PK__Counties__B68F9D973EADF06B");

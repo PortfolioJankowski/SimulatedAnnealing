@@ -38,8 +38,6 @@ public partial class District
                     queue.Enqueue(neighbor);
                 });
         }
-
-
         // If all counties are visited, the district is unbroken
         return visited.Count == district.Counties.Count;
     }

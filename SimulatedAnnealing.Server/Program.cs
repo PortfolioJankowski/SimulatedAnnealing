@@ -41,7 +41,6 @@ builder.Services.AddAuthentication(options =>
         };
 });
 
-//Avoid creating JWT token using swagger
 builder.Services.AddSwaggerGen(option =>
 {
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });

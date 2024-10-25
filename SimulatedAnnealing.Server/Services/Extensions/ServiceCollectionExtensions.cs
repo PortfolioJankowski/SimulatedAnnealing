@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
 {
     private static string _connectionStringName = "PhdApi";
     public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
-    {
+    { 
         services.AddDbContext<PhdApiContext>(options => options.UseSqlServer(configuration.GetConnectionString(_connectionStringName)));
         services.AddScoped<CacheService, CacheService>();
         services.AddScoped<StateBuilder, StateBuilder>();
@@ -27,6 +27,11 @@ public static class ServiceCollectionExtensions
         })
             .AddEntityFrameworkStores<PhdApiContext>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IUserService, UserService>();
+  
+
+
+
     }
 }
 
