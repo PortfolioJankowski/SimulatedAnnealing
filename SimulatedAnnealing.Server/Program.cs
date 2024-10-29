@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -5,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using SimulatedAnnealing.Server.Services.Authentication;
 using SimulatedAnnealing.Server.Services.Extensions;
+using SimulatedAnnealing.Server.Services.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,9 +77,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<AuthMiddleware>();
 app.MapControllers();
 app.Run();

@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Server.Models.Authentication;
 using SimulatedAnnealing.Server.Services.Authentication;
 using SimulatedAnnealing.Server.Services.Behavioral;
 using SimulatedAnnealing.Server.Services.Creational;
 using SimulatedAnnealing.Server.Services.Database;
+using SimulatedAnnealing.Server.Services.Middlewares;
 
 namespace SimulatedAnnealing.Server.Services.Extensions;
 
@@ -12,7 +14,7 @@ public static class ServiceCollectionExtensions
 {
     private static string _connectionStringName = "PhdApi";
     public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
-    { 
+    {
         services.AddDbContext<PhdApiContext>(options => options.UseSqlServer(configuration.GetConnectionString(_connectionStringName)));
         services.AddScoped<CacheService, CacheService>();
         services.AddScoped<StateBuilder, StateBuilder>();
@@ -28,10 +30,7 @@ public static class ServiceCollectionExtensions
             .AddEntityFrameworkStores<PhdApiContext>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserService, UserService>();
-  
-
-
-
+        services.AddTransient<AuthMiddleware>();
     }
 }
 
