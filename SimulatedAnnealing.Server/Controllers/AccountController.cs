@@ -24,19 +24,12 @@ public class AccountController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        try
-        {
-            var user = await _userService.LogInAsync(loginDto);
-            return Ok(user);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, "An error occurred during login.");
-        }     
+       //using tuple because async methods cannot have ref in or out parameters (thats why I couldnt use (...out var user, out var exception) in parameters
+       var (user, exception) = await _userService.TryLoginUserAsync(loginDto);
+       if (exception != null)
+            return Unauthorized(exception.Message);
+
+        return Ok(user); 
     }
 
     [HttpPost("Register")]
@@ -45,21 +38,11 @@ public class AccountController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        try
-        {
-            var newUser = await _userService.RegisterAsync(registerDto);
-            return Ok(newUser);
-        } catch (UserCreationException ex)
-        {
-            return BadRequest(new
-            {
-                Message = ex.Message,
-                Errors = ex.Errors.Select(e => e.Description) 
-            });
-        } catch (Exception)
-        {
-            return StatusCode(500, "An error occured during registration");
-        }
+        var (newUser, exception) = await _userService.TryRegisterAsync(registerDto);
+        if (exception != null)
+            return BadRequest(exception.Message);
+
+        return Ok(newUser);   
     }    
 }
 

@@ -1,12 +1,10 @@
 ﻿using SimulatedAnnealing.Server.Models.Authentication;
 using SimulatedAnnealing.Server.Models.Authentication.Dto;
 
-namespace SimulatedAnnealing.Server.Services.Authentication
-{
-    public interface IUserService
-    {
-        Task<NewUserDto?> LogInAsync(LoginDto loginDto);
-        Task<NewUserDto?> RegisterAsync(RegisterDto registerDto);
+namespace SimulatedAnnealing.Server.Services.Authentication;
 
-    }
+public interface IUserService
+{
+    Task<(NewUserDto? newUser, Exception? exception)> TryRegisterAsync(RegisterDto registerDto);
+    Task<(NewUserDto? user, Exception? exception)> TryLoginUserAsync(LoginDto loginDto);
 }
