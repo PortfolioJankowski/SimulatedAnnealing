@@ -27,7 +27,7 @@ public class AlgorithmController : Controller
     [HttpGet("test")]
     public string AuthorizationCheck()
     {
-        //nie zabij mnie za to, ale TOKEN DO SWAGGERA XDDDDDDDDDDDDDDDDDD: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1hdGlAZXhhbXBsZS5jb20iLCJnaXZlbl9uYW1lIjoicGhkTWF0aSIsIm5iZiI6MTcyOTYzMTEzMywiZXhwIjoxNzMwMjM5NTMzLCJpYXQiOjE3Mjk2MzExMzMsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTIxMCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTIxMCJ9.p5SlCe87t74c2MhtFvuQOFDjT5_RWhjQDtLIrX7E3jQ
+        //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJnaXZlbl9uYW1lIjoic2llbWEiLCJuYmYiOjE3MzAzOTMzNzgsImV4cCI6MTczMDk5ODE3OCwiaWF0IjoxNzMwMzkzMzc4LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjUyMTAiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjUyMTAifQ.d7uyonhDFcNg1DoaZiCKtmJ77N78jVB_YvuFjLEnsdY
         return "Test";
     }
 

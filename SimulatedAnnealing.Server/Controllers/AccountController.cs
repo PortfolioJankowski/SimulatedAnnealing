@@ -24,7 +24,6 @@ public class AccountController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-       //using tuple because async methods cannot have ref in or out parameters (thats why I couldnt use (...out var user, out var exception) in parameters
        var (user, exception) = await _userService.TryLoginUserAsync(loginDto);
        if (exception != null)
             return Unauthorized(exception.Message);

@@ -16,6 +16,8 @@ public class AuthMiddleware : IMiddleware
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         _logger.LogInformation("Processing request: {Path}", context.Request.Path);
+        if (context.Request.Path.StartsWithSegments("/api/Account")){ await next(context); return; }
+
         if (!context.User.Identity.IsAuthenticated)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized; 
