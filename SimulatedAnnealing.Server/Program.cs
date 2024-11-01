@@ -92,3 +92,5 @@ app.UseMiddleware<AuthMiddleware>();
 app.MapControllers();
 app.MapDatabaseEndpoints();
 app.Run();
+
+public partial class Program { }

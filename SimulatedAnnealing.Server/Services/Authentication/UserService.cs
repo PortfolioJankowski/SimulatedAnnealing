@@ -47,7 +47,7 @@ namespace SimulatedAnnealing.Server.Services.Authentication
 
         public async Task<(NewUserDto? user, Exception? exception)> TryLoginUserAsync(LoginDto loginDto)
         {
-            var appUser = await _userManager.Users.FirstAsync(x => x.UserName == loginDto.Username.ToLower());
+            var appUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
             if (appUser == null)
                 return (null, new UnauthorizedAccessException("Invalid username!"));
 
@@ -63,12 +63,5 @@ namespace SimulatedAnnealing.Server.Services.Authentication
             };
             return (userDto, null);
         }
-
-        private async Task<AppUser> GetUserById(string username)
-        {
-            return await _userManager.Users.FirstAsync(x => x.UserName == username.ToLower());
-        }
-
-
     }
 }

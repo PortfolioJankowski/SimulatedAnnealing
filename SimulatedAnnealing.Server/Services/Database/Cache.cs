@@ -8,7 +8,6 @@ using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Services.Database;
 
-//TODO REFACTOR TEGO
 public static class Cache
 {
     private static readonly ConcurrentDictionary<string, IQueryable<Voivodeship>> _voivodeshipCache = new();
