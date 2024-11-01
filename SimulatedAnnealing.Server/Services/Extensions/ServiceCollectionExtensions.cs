@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
     public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<PhdApiContext>(options => options.UseSqlServer(configuration.GetConnectionString(_connectionStringName)));
-        services.AddScoped<CacheService, CacheService>();
+        services.AddScoped<IDbRepository, DbRepository>();
         services.AddScoped<StateBuilder, StateBuilder>();
         services.AddScoped<ComplianceService, ComplianceService>();
         services.AddScoped<SimulatedAnnealingService, SimulatedAnnealingService>();
@@ -31,7 +31,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserService, UserService>();
         services.AddTransient<AuthMiddleware>();
-        services.AddScoped<IDbRepository, DbRepository>();  
+
+        // Initialize the Cache
+        var serviceProvider = services.BuildServiceProvider();
+        var config = serviceProvider.GetRequiredService<IConfiguration>();
+        var logger = serviceProvider.GetRequiredService<ILogger<Program>>(); 
+        var context = serviceProvider.GetRequiredService<PhdApiContext>();
+
+        Cache.Initialize(config, logger, context);
     }
 }
 

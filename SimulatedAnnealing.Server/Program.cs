@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -8,6 +9,7 @@ using SimulatedAnnealing.Server.Controllers;
 using SimulatedAnnealing.Server.Services.Authentication;
 using SimulatedAnnealing.Server.Services.Extensions;
 using SimulatedAnnealing.Server.Services.Middlewares;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,11 @@ var logger = new LoggerConfiguration()
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 builder.Services.AddControllers();
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    options.SerializerOptions.WriteIndented = true; // Optional: Makes JSON output readable
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
