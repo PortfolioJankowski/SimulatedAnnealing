@@ -5,6 +5,8 @@ using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Services.Database;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 
 namespace SimulatedAnnealing.Server.Controllers;
 
@@ -17,24 +19,31 @@ public static class DatabaseEndpoints
         app.MapPost("api/Database/GetInitialState", GetInitialState).RequireAuthorization();
     }
 
-    public static async Task<IResult> GetInitialState([FromBody] ConfigurationQuery request, IDbRepository dbRepository)
+    public static async Task<IResult> GetInitialState([FromBody] ConfigurationRequestBody request, IDbRepository dbRepository, IValidator<ConfigurationRequestBody> validator) //Inside DTO files i inserted additional validator classes
     {
-        var initialVoivodeship = await dbRepository.GetVoivodeship(request);
+        var validationResult = await validator.ValidateAsync(request); //Added sth similar to ModelState.Valid -> minimal api doesnt support that mechanism by default
+        if (!validationResult.IsValid)
+            return Results.BadRequest(validationResult.Errors);
 
-        var jsonOptions = new JsonSerializerOptions
-        {
-            ReferenceHandler = ReferenceHandler.Preserve,
-            WriteIndented = true
-        };
+        var initialVoivodeship = await dbRepository.GetVoivodeship(request); //Avoided one-liner return statement -> imo readabillity improved
+        if (initialVoivodeship == null)
+            return Results.NotFound();
 
-        return initialVoivodeship != null ? Results.Json(initialVoivodeship, jsonOptions) : Results.NotFound();
+        return Results.Json(initialVoivodeship);
     }
 
-    public static async Task<IResult> GetLocalResults([FromBody] LocalResultsQuery request, IDbRepository dbRepository) //DI into Method
+    public static async Task<IResult> GetLocalResults([FromBody] LocalResultsRequestBody request, IDbRepository dbRepository, IValidator<LocalResultsRequestBody> validator) //DI into Method
     {
+        var validationResult = await validator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+            return Results.BadRequest(validationResult.Errors);
+
         var localResults = await dbRepository.GetLocalResults(request);
-        return localResults != null ? Results.Json(localResults) : Results.NoContent();
+
+        if (localResults == null)
+            return Results.NoContent();
+
+        return Results.Json(localResults);
     }
-    
 }
 

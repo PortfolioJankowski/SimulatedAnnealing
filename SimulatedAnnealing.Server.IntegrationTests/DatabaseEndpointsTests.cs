@@ -27,7 +27,7 @@ public class DatabaseEndpointsTests : IClassFixture<DatabaseEndpointFactory>
     public async Task GetInitialState_ReturnsExpectedVoivodeship_WhenDataExists()
     {
         // Arrange
-        var request = new ConfigurationQuery { Year = 2024, VoivodeshipName = "małopolskie" };
+        var request = new ConfigurationRequestBody { Year = 2024, VoivodeshipName = "małopolskie" };
         var token = await GetJwtTokenForTestUser();
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         

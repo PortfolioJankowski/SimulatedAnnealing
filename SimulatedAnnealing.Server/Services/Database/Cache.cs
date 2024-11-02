@@ -1,94 +1,57 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
-using SimulatedAnnealing.Server.Models.DTOs;
-using SimulatedAnnealing.Server.Services.Database;
+﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
 public static class Cache
 {
-    private static readonly ConcurrentDictionary<string, IQueryable<Voivodeship>> _voivodeshipCache = new();
-    private static readonly ConcurrentDictionary<string, IQueryable<County>> _countyCache = new();
-    private static readonly ConcurrentDictionary<string, IQueryable<Neighbor>> _neighborCache = new();
+    private static readonly object CacheLock = new object();
+    private static IQueryable<Voivodeship>? _voivodeshipCache;
+    private static IQueryable<County>? _countiesCache;
+    private static IQueryable<Neighbor>? _neighborsCache;
 
-    private static IConfiguration _configuration;
-    private static ILogger _logger;
-    private static PhdApiContext _context;
-    private static readonly string _bestParties = "BestPartiesLocal";
-
-    public static void Initialize(IConfiguration configuration, ILogger logger, PhdApiContext context)
+    public static void SetVoivodeshipIQueryable(IQueryable<Voivodeship> voivodeship)
     {
-        _configuration = configuration;
-        _logger = logger;
-        _context = context;
-    }
-
-    public static IQueryable<Voivodeship> GetVoivodeshipQueryable(ConfigurationQuery request)
-    {
-        string cacheKey = $"{request.Year}-{request.VoivodeshipName.ToLower()}";
-
-        return _voivodeshipCache.GetOrAdd(cacheKey, _ =>
+        lock (CacheLock)
         {
-            return FetchVoivodeshipData(request);
-        });
-    }
-
-    public static IQueryable<County> GetCountyQueryable()
-    {
-        return _countyCache.GetOrAdd("AllCounties", _ => FetchCountyData());
-    }
-
-    public static IQueryable<Neighbor> GetNeighborsQueryable()
-    {
-        return _neighborCache.GetOrAdd("AllNeighbors", _ => FetchNeighborsData());
-    }
-
-    private static IQueryable<Voivodeship> FetchVoivodeshipData(ConfigurationQuery request)
-    {
-        var bestPartiesSection = _configuration.GetSection($"{_bestParties}:{request.Year}:{request.VoivodeshipName.ToLower()}");
-        var bestParties = bestPartiesSection.Get<List<string>>();
-
-        if (bestParties == null || !bestParties.Any())
-        {
-            var errorMessage = "Provided data is incorrect!";
-            _logger.LogError(errorMessage);
-            throw new Exception(errorMessage);
-        }
-
-        try
-        {
-            return _context.Voivodeships
-               .Where(v => v.Name == request.VoivodeshipName)
-               .Include(v => v.Districts)
-                    .ThenInclude(d => d.Counties)
-                        .ThenInclude(c => c.VotingResults
-                            .Where(r => r.Year == request.Year && bestParties.Contains(r.Committee!)))
-               .AsQueryable();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while fetching the voivodeship data.");
-            throw new Exception($"An error occurred while fetching the voivodeship data: {ex.Message}");
+            _voivodeshipCache = voivodeship;
         }
     }
 
-    private static IQueryable<County> FetchCountyData()
+    public static IQueryable<County>? GetCountiesIQueryable()
     {
-        return _context.Counties.Include(c => c.VotingResults).AsQueryable();
+        lock (CacheLock)
+        {
+            return _countiesCache?.AsQueryable();
+        }
     }
 
-    private static IQueryable<Neighbor> FetchNeighborsData()
+    public static void SetCountiesIQueryable(IQueryable<County> counties)
     {
-        return _context.Neighbors.AsQueryable();
+        lock (CacheLock)
+        {
+            _countiesCache = counties;
+        }
     }
 
-    public static void ClearCache()
+    public static IQueryable<Neighbor>? GetNeighborsIQueryable()
     {
-        _voivodeshipCache.Clear();
-        _countyCache.Clear();
-        _neighborCache.Clear();
+        lock (CacheLock)
+        {
+            return _neighborsCache?.AsQueryable();
+        }
+    }
+
+    public static void SetNeighborsIQueryable(IQueryable<Neighbor> neighbors)
+    {
+        lock (CacheLock)
+        {
+            _neighborsCache = neighbors;
+        }
+    }
+
+    public static IQueryable<Voivodeship>? GetVoivodeshipQueryable() 
+    {
+        lock (CacheLock)
+        {
+            return _voivodeshipCache?.AsQueryable();
+        }
     }
 }

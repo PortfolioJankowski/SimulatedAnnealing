@@ -1,12 +1,10 @@
-using Microsoft.AspNetCore.Authentication;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using SimulatedAnnealing.Server.Controllers;
-using SimulatedAnnealing.Server.Services.Authentication;
 using SimulatedAnnealing.Server.Services.Extensions;
 using SimulatedAnnealing.Server.Services.Middlewares;
 using System.Text.Json.Serialization;
@@ -50,7 +48,6 @@ builder.Services.AddAuthentication(options =>
                 System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]))
         };
 });
-
 builder.Services.AddSwaggerGen(option =>
 {
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });

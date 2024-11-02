@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Server.Models.Authentication;
+using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Services.Authentication;
 using SimulatedAnnealing.Server.Services.Behavioral;
 using SimulatedAnnealing.Server.Services.Creational;
@@ -31,14 +33,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserService, UserService>();
         services.AddTransient<AuthMiddleware>();
-
-        // Initialize the Cache
-        var serviceProvider = services.BuildServiceProvider();
-        var config = serviceProvider.GetRequiredService<IConfiguration>();
-        var logger = serviceProvider.GetRequiredService<ILogger<Program>>(); 
-        var context = serviceProvider.GetRequiredService<PhdApiContext>();
-
-        Cache.Initialize(config, logger, context);
+        services.AddScoped<IValidator<ConfigurationRequestBody>, ConfigurationRequestBodyValidator>();
+        services.AddScoped<IValidator<LocalResultsRequestBody>, LocalResultsRequestBodyValidator>();
     }
 }
 

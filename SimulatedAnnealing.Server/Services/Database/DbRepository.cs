@@ -8,42 +8,85 @@ public class DbRepository : IDbRepository
 {
     private readonly PhdApiContext _context;
     private readonly ILogger _logger;
+    private readonly string _bestParties = "BestPartiesLocal";
+    private readonly IConfiguration _configuration;
 
-    public DbRepository(PhdApiContext context, ILogger<DbRepository> logger)
+    public DbRepository(PhdApiContext context, ILogger<DbRepository> logger, IConfiguration configuration)
     {
         _context = context;
         _logger = logger;
+        _configuration = configuration;
+
     }
 
-    public async Task<Voivodeship?> GetVoivodeship(ConfigurationQuery request)
+    public async Task<Voivodeship?> GetVoivodeship(ConfigurationRequestBody request)
     {
-        var currentVoivodeShip = Cache.GetVoivodeshipQueryable(request).FirstOrDefault(); 
-        var currentCounties = Cache.GetCountyQueryable();
-        var neighbors = Cache.GetNeighborsQueryable();
+        // Check the cache first
+        var cachedVoivodeship = Cache.GetVoivodeshipQueryable();
+        if (cachedVoivodeship != null)
+            return await cachedVoivodeship.FirstOrDefaultAsync();
 
-        if (currentVoivodeShip == null)
-            return null;
+        // Load best parties from configuration
+        var bestParties = _configuration.GetSection($"{_bestParties}:{request.Year}:{request.VoivodeshipName.ToLower()}").Get<List<string>>();
 
-        var districts = currentVoivodeShip.Districts;
-        foreach (var district in districts)
+        if (bestParties == null || !bestParties.Any())
         {
-            foreach (var county in district.Counties)
-            {
-                var neighborsIds = neighbors
-                    .Where(n => n.CountyId == county.CountyId)
-                    .Select(s => s.NeighborId)
-                    .ToList();
-
-                county.NeighboringCounties = currentCounties
-                    .Where(c => neighborsIds.Contains(c.CountyId))
-                    .ToList();
-            }
+            const string errorMessage = "Provided data is incorrect!";
+            _logger.LogError(errorMessage);
+            throw new ArgumentException(errorMessage);
         }
-        return currentVoivodeShip;
+
+        try
+        {
+            // Fetch voivodeship and related data from the database
+            var voivodeship = _context.Voivodeships
+                .Where(v => v.Name == request.VoivodeshipName)
+                .Include(v => v.Districts)
+                    .ThenInclude(d => d.Counties)
+                        .ThenInclude(c => c.VotingResults
+                            .Where(r => r.Year == request.Year && bestParties.Contains(r.Committee!)))
+                .AsQueryable();
+
+            var currentVoivodeship = await voivodeship.FirstOrDefaultAsync();
+            if (currentVoivodeship == null)
+                return null;
+
+            var neighbors = await _context.Neighbors.AsQueryable().ToListAsync();
+            var counties = await _context.Counties.AsQueryable().ToListAsync();
+
+            // Set caches
+            Cache.SetVoivodeshipIQueryable(voivodeship);
+            Cache.SetCountiesIQueryable(counties.AsQueryable());
+            Cache.SetNeighborsIQueryable(neighbors.AsQueryable());
+
+            var neighborLookup = neighbors
+                .GroupBy(n => n.CountyId)
+                .ToDictionary(g => g.Key, g => g.Select(n => n.NeighborId).ToList());
+
+            currentVoivodeship.Districts
+                .SelectMany(district => district.Counties)
+                .ToList()
+                .ForEach(county =>
+                {
+                    if (neighborLookup.TryGetValue(county.CountyId, out var neighborIds))
+                    {
+                        county.NeighboringCounties = counties
+                            .Where(c => neighborIds.Contains(c.CountyId))
+                            .ToList();
+                    }
+                });
+
+            return currentVoivodeship;
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = "An error occurred while fetching the voivodeship data.";
+            _logger.LogError(ex, errorMessage);
+            throw new InvalidOperationException(errorMessage, ex);
+        }
     }
 
-
-    public async Task<GerrymanderingResult?> GetLocalResults(LocalResultsQuery request)
+    public async Task<GerrymanderingResult?> GetLocalResults(LocalResultsRequestBody request)
     {
         try
         {
