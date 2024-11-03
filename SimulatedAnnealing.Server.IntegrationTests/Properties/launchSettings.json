@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SimulatedAnnealing.Server.IntegrationTests": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
