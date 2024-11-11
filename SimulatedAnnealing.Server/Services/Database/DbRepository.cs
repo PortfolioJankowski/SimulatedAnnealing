@@ -19,7 +19,7 @@ public class DbRepository : IDbRepository
 
     }
 
-    public async Task<Voivodeship?> GetVoivodeship(ConfigurationRequestBody request)
+    public async Task<Voivodeship?> GetVoivodeshipAsync(ConfigurationRequestBody request)
     {
         // Check the cache first
         var cachedVoivodeship = Cache.GetVoivodeshipQueryable();
@@ -33,7 +33,7 @@ public class DbRepository : IDbRepository
         {
             const string errorMessage = "Provided data is incorrect!";
             _logger.LogError(errorMessage);
-            throw new ArgumentException(errorMessage);
+            return await Task.FromResult<Voivodeship?>(null);   
         }
 
         try
@@ -49,7 +49,7 @@ public class DbRepository : IDbRepository
 
             var currentVoivodeship = await voivodeship.FirstOrDefaultAsync();
             if (currentVoivodeship == null)
-                return null;
+                 return await Task.FromResult<Voivodeship?>(null);
 
             var neighbors = await _context.Neighbors.AsQueryable().ToListAsync();
             var counties = await _context.Counties.AsQueryable().ToListAsync();
@@ -82,11 +82,11 @@ public class DbRepository : IDbRepository
         {
             var errorMessage = "An error occurred while fetching the voivodeship data.";
             _logger.LogError(ex, errorMessage);
-            throw new InvalidOperationException(errorMessage, ex);
+            return await Task.FromResult<Voivodeship?>(null);
         }
     }
 
-    public async Task<GerrymanderingResult?> GetLocalResults(LocalResultsRequestBody request)
+    public async Task<GerrymanderingResult?> GetLocalResultsAsync(LocalResultsRequestBody request)
     {
         try
         {

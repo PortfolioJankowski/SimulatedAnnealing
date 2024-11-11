@@ -9,6 +9,7 @@ using SimulatedAnnealing.Server.Services.Behavioral;
 using SimulatedAnnealing.Server.Services.Creational;
 using SimulatedAnnealing.Server.Services.Database;
 using SimulatedAnnealing.Server.Services.Middlewares;
+using SimulatedAnnealing.Server.Services.Validators;
 
 namespace SimulatedAnnealing.Server.Services.Extensions;
 

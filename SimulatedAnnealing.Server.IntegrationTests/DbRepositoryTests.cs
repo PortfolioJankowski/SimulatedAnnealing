@@ -23,7 +23,7 @@ public class DbRepositoryTests : BaseIntegrationTest
             Year = 2024
         };
 
-        var result = await _dbRepository.GetVoivodeship(request);
+        var result = await _dbRepository.GetVoivodeshipAsync(request);
         Assert.NotNull(result);
 
     } 

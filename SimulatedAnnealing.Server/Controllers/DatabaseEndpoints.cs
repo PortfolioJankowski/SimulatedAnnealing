@@ -25,7 +25,7 @@ public static class DatabaseEndpoints
         if (!validationResult.IsValid)
             return Results.BadRequest(validationResult.Errors);
 
-        var initialVoivodeship = await dbRepository.GetVoivodeship(request); //Avoided one-liner return statement -> imo readabillity improved
+        var initialVoivodeship = await dbRepository.GetVoivodeshipAsync(request); //Avoided one-liner return statement -> imo readabillity improved
         if (initialVoivodeship == null)
             return Results.NotFound();
 
@@ -38,7 +38,7 @@ public static class DatabaseEndpoints
         if (!validationResult.IsValid)
             return Results.BadRequest(validationResult.Errors);
 
-        var localResults = await dbRepository.GetLocalResults(request);
+        var localResults = await dbRepository.GetLocalResultsAsync(request);
 
         if (localResults == null)
             return Results.NoContent();

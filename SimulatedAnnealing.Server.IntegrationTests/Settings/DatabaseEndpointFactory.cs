@@ -49,6 +49,7 @@ public class DatabaseEndpointFactory : WebApplicationFactory<Program>
 
             // Register other dependencies as needed
             services.AddScoped<IDbRepository, DbRepository>();
+            services.AddScoped<IUserService, UserService>();
         });
     }
 }
