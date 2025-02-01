@@ -1,13 +1,13 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.Options;
-using SimulatedAnnealing.Server.Models.Algorithm.Variable;
+using SimulatedAnnealing.Server.Models.Algorithm;
 using SimulatedAnnealing.Server.Models.DTOs;
 
 namespace SimulatedAnnealing.Server.Services.Validators;
 
 public class ConfigurationRequestBodyValidator : AbstractValidator<ConfigurationRequestBody>
 {
-    public ConfigurationRequestBodyValidator(IOptions<AvailableDistricts> availableDistricts)
+    public ConfigurationRequestBodyValidator(IOptions<AvailableDirstricsOptions> availableDistricts)
     {
         var districts = availableDistricts.Value.Districts;
 
@@ -19,7 +19,7 @@ public class ConfigurationRequestBodyValidator : AbstractValidator<Configuration
 
         RuleFor(x => x.Year)
            .Must((request, year) => 
-            districts.TryGetValue(request.VoivodeshipName.ToLower(), out var validYears) && validYears.Contains(year))
+            districts.TryGetValue(request.VoivodeshipName.ToLower(), out var validYears) && validYears.Keys.Contains(year.ToString()))
            .WithMessage("The selected year is not available for this Voivodeship.");
     }
 }

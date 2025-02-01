@@ -14,6 +14,20 @@ public static class DatabaseEndpoints
         app.MapPost("api/Database/GetInitialState", GetInitialState).RequireAuthorization();
     }
 
+    public static async Task<IResult> GetLocalResults([FromBody] LocalResultsRequestBody request, IDbRepository dbRepository, IValidator<LocalResultsRequestBody> validator) //DI into Method
+    {
+        var validationResult = await validator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+            return Results.BadRequest(validationResult.Errors);
+
+        var localResults = await dbRepository.GetGerrymanderringResults(request);
+
+        if (localResults == null)
+            return Results.NoContent();
+
+        return Results.Json(localResults);
+    }
+
     public static async Task<IResult> GetInitialState([FromBody] ConfigurationRequestBody request, IDbRepository dbRepository, IValidator<ConfigurationRequestBody> validator) //Inside DTO files i inserted additional validator classes
     {
         var validationResult = await validator.ValidateAsync(request); //Added sth similar to ModelState.Valid -> minimal api doesnt support that mechanism by default
@@ -25,20 +39,6 @@ public static class DatabaseEndpoints
             return Results.NotFound();
 
         return Results.Json(initialVoivodeship);
-    }
-
-    public static async Task<IResult> GetLocalResults([FromBody] LocalResultsRequestBody request, IDbRepository dbRepository, IValidator<LocalResultsRequestBody> validator) //DI into Method
-    {
-        var validationResult = await validator.ValidateAsync(request);
-        if (!validationResult.IsValid)
-            return Results.BadRequest(validationResult.Errors);
-
-        var localResults = await dbRepository.GetLocalResultsAsync(request);
-
-        if (localResults == null)
-            return Results.NoContent();
-
-        return Results.Json(localResults);
     }
 }
 

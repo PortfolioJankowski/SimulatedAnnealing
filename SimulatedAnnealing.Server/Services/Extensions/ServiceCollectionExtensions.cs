@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SimulatedAnnealing.Server.Models.Algorithm.Variable;
+using SimulatedAnnealing.Server.Models.Algorithm;
 using SimulatedAnnealing.Server.Models.Authentication;
 using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Services.Algorithm;
@@ -37,7 +37,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<AuthMiddleware>();
         services.AddScoped<IValidator<ConfigurationRequestBody>, ConfigurationRequestBodyValidator>();
         services.AddScoped<IValidator<LocalResultsRequestBody>, LocalResultsRequestBodyValidator>();
-        services.Configure<AvailableDistricts>(configuration.GetSection(nameof(AvailableDistricts)));
+        services.Configure<AvailableDirstricsOptions>(configuration.GetSection("AvailableDistricts"));
     }
 }
 

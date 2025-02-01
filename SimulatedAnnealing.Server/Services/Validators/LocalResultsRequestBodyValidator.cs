@@ -1,20 +1,31 @@
-﻿using FluentValidation;
+﻿using Azure.Core;
+using FluentValidation;
+using Microsoft.Extensions.Options;
+using SimulatedAnnealing.Server.Models.Algorithm;
+using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using SimulatedAnnealing.Server.Models.DTOs;
 
 namespace SimulatedAnnealing.Server.Services.Validators;
 
 public class LocalResultsRequestBodyValidator : AbstractValidator<LocalResultsRequestBody>
 {
-    public LocalResultsRequestBodyValidator()
+    public LocalResultsRequestBodyValidator(IOptions<AvailableDirstricsOptions> availableDistricts)
     {
+        var districts = availableDistricts.Value;
+
         RuleFor(x => x.Year)
-            .NotEmpty().WithMessage("Year is required.")
-            .InclusiveBetween(2014, 2024).WithMessage("Year must be between 2014 and 2024.");
+            .Must((request, year) => IsValidRequest(request, districts))
+            .WithMessage("Invalid voivodeship or year provided.");
+    }
 
-        RuleFor(x => x.PoliticalParty)
-            .NotEmpty().WithMessage("Political party is required.");
+    private bool IsValidRequest(LocalResultsRequestBody request,  AvailableDirstricsOptions districts)
+    {
+        if (!districts.Districts.TryGetValue(request.VoivodeshipName.ToLower(), out var availableYears))
+            return false; 
 
-        RuleFor(x => x.Voivodeship)
-            .NotEmpty().WithMessage("Voivodeship is required.");
+        if (!availableYears.TryGetValue(request.Year.ToString(), out var availableParties))
+            return false; 
+
+        return availableParties.Contains(request.PoliticalParty);
     }
 }

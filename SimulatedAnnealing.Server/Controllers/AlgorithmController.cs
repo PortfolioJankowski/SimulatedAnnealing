@@ -27,7 +27,7 @@ public class AlgorithmController : Controller
     [HttpGet("test")]
     public string AuthorizationCheck()
     {
-        //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJnaXZlbl9uYW1lIjoic2llbWEiLCJuYmYiOjE3MzAzOTMzNzgsImV4cCI6MTczMDk5ODE3OCwiaWF0IjoxNzMwMzkzMzc4LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjUyMTAiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjUyMTAifQ.d7uyonhDFcNg1DoaZiCKtmJ77N78jVB_YvuFjLEnsdY
+        //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4Y2VsbGVuY2phQG8yLnBsIiwiZ2l2ZW5fbmFtZSI6IkV4Y2VsbGVuY2phIiwibmJmIjoxNzM4NDIyNTE5LCJleHAiOjE3MzkwMjczMTksImlhdCI6MTczODQyMjUxOSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo1MjEwIiwiYXVkIjoiaHR0cDovL2xvY2FsaG9zdDo1MjEwIn0.M2uZQhRMulFV1JE-QbGkFR4pp8xpM_HZ_8Vf2lJKvL0
         return "Test";
     }
 

@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using SimulatedAnnealing.Server.Models.Algorithm;
 using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using SimulatedAnnealing.Server.Models.DTOs;
 
@@ -7,16 +9,16 @@ namespace SimulatedAnnealing.Server.Services.Database;
 public class DbRepository : IDbRepository
 {
     private readonly PhdApiContext _context;
+    private readonly IOptions<AvailableDirstricsOptions> _availableDistricts;
     private readonly ILogger _logger;
-    private readonly string _bestParties = "BestPartiesLocal";
+
     private readonly IConfiguration _configuration;
 
-    public DbRepository(PhdApiContext context, ILogger<DbRepository> logger, IConfiguration configuration)
+    public DbRepository(PhdApiContext context, ILogger<DbRepository> logger,  IOptions<AvailableDirstricsOptions> availableDistricts)
     {
         _context = context;
         _logger = logger;
-        _configuration = configuration;
-
+        _availableDistricts = availableDistricts;
     }
 
     public async Task<Voivodeship?> GetVoivodeshipAsync(ConfigurationRequestBody request)
@@ -27,14 +29,9 @@ public class DbRepository : IDbRepository
             return await cachedVoivodeship.FirstOrDefaultAsync();
 
         // Load best parties from configuration
-        var bestParties = _configuration.GetSection($"{_bestParties}:{request.Year}:{request.VoivodeshipName.ToLower()}").Get<List<string>>();
-
-        if (bestParties == null || !bestParties.Any())
-        {
-            const string errorMessage = "Provided data is incorrect!";
-            _logger.LogError(errorMessage);
-            return await Task.FromResult<Voivodeship?>(null);   
-        }
+       //var bestParties = _configuration.GetSection($"{_bestParties}:{request.Year}:{request.VoivodeshipName.ToLower()}").Get<List<string>>();
+        var districts = _availableDistricts.Value.Districts;
+        var bestParties = districts[request.VoivodeshipName.ToLower()][request.Year.ToString()].ToList();
 
         try
         {
@@ -86,20 +83,20 @@ public class DbRepository : IDbRepository
         }
     }
 
-    public async Task<GerrymanderingResult?> GetLocalResultsAsync(LocalResultsRequestBody request)
+    public async Task<GerrymanderingResult?> GetGerrymanderringResults(LocalResultsRequestBody request)
     {
         try
         {
             return await _context.GerrymanderingResults
                 .Where(r => r.ChoosenParty == request.PoliticalParty
                             && r.ElectoralYear == request.Year
-                            && r.Voivodeship == request.Voivodeship)
+                            && r.Voivodeship == request.VoivodeshipName)
                 .OrderByDescending(r => r.FinalScore)
                 .FirstAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving local results for Party: {request.PoliticalParty}, Year: {request.Year}, Voivodeship: {request.Voivodeship}", ex.Message);
+            _logger.LogError(ex, $"Error retrieving local results for Party: {request.PoliticalParty}, Year: {request.Year}, Voivodeship: {request.VoivodeshipName}", ex.Message);
             return null; 
         }
     }

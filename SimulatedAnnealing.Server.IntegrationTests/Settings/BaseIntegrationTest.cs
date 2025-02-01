@@ -28,7 +28,7 @@ public abstract class BaseIntegrationTest : IClassFixture<DatabaseEndpointFactor
         {
             PoliticalParty = "KOMITET WYBORCZY PRAWO I SPRAWIEDLIWOŚĆ",
             Year = 2024,
-            Voivodeship = "małopolskie"
+            VoivodeshipName = "małopolskie"
         };
 
         _configurationRequestBody = new ConfigurationRequestBody()
