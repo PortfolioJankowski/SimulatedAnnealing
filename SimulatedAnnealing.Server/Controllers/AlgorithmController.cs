@@ -19,7 +19,7 @@ public class AlgorithmController : Controller
     }
 
     [HttpGet("Optimize")]
-    public State GetOptimisedVoivodeship()
+    public DistrictState GetOptimisedVoivodeship()
     {
         return _simulatedAnnealingService.Optimize();
     }

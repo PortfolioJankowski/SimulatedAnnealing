@@ -3,12 +3,13 @@ using SimulatedAnnealing.Server.Services.Behavioral;
 
 namespace SimulatedAnnealing.Server.Models.Algorithm.Variable;
 
-public class State
+public class DistrictState
 {
     private readonly ComplianceService _complianceService;
-    public State(ComplianceService complianceService)
+    public DistrictState(ComplianceService complianceService)
     {
         _complianceService = complianceService;
+        CalculateDetails();
     }
 
     public Voivodeship ActualConfiguration { get; set; } = null!;

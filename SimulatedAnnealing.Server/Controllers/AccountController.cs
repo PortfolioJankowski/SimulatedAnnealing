@@ -1,9 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SimulatedAnnealing.Server.Models.Authentication;
+﻿using Microsoft.AspNetCore.Mvc;
 using SimulatedAnnealing.Server.Models.Authentication.Dto;
-using SimulatedAnnealing.Server.Models.Authentication.Exceptions;
 using SimulatedAnnealing.Server.Services.Authentication;
 
 namespace SimulatedAnnealing.Server.Controllers;

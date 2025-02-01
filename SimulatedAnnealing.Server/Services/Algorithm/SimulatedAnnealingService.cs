@@ -8,9 +8,9 @@ public class SimulatedAnnealingService
     {
         _complianceService = complianceService;
     }
-    public State Optimize()
+    public DistrictState Optimize()
     {
 
-        return new State(_complianceService);
+        return new DistrictState(_complianceService);
     }
 }

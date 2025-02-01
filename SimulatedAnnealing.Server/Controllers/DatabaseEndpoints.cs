@@ -1,11 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
+﻿using Microsoft.AspNetCore.Mvc;
 using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Services.Database;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-using System.ComponentModel.DataAnnotations;
 using FluentValidation;
 
 namespace SimulatedAnnealing.Server.Controllers;
