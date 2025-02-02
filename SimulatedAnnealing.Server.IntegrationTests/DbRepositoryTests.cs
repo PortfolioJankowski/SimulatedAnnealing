@@ -17,7 +17,7 @@ public class DbRepositoryTests : BaseIntegrationTest
     [Fact]
     public async Task GetVoivodeShip_ShouldReturnValidVoivodeship_WhenProperRequestProvided()
     {
-        var request = new ConfigurationRequestBody()
+        var request = new InitialStateRequest()
         {
             VoivodeshipName = "małopolskie",
             Year = 2024

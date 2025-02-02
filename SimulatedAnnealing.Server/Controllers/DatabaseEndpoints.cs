@@ -2,6 +2,7 @@
 using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Services.Database;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace SimulatedAnnealing.Server.Controllers;
 
@@ -20,7 +21,7 @@ public static class DatabaseEndpoints
         if (!validationResult.IsValid)
             return Results.BadRequest(validationResult.Errors);
 
-        var localResults = await dbRepository.GetGerrymanderringResults(request);
+        var localResults = await dbRepository.GetGerrymanderringResultsAsync(request);
 
         if (localResults == null)
             return Results.NoContent();
@@ -28,7 +29,7 @@ public static class DatabaseEndpoints
         return Results.Json(localResults);
     }
 
-    public static async Task<IResult> GetInitialState([FromBody] ConfigurationRequestBody request, IDbRepository dbRepository, IValidator<ConfigurationRequestBody> validator) //Inside DTO files i inserted additional validator classes
+    public static async Task<IResult> GetInitialState([FromBody] InitialStateRequest request, IDbRepository dbRepository, IValidator<InitialStateRequest> validator) //Inside DTO files i inserted additional validator classes
     {
         var validationResult = await validator.ValidateAsync(request); //Added sth similar to ModelState.Valid -> minimal api doesnt support that mechanism by default
         if (!validationResult.IsValid)

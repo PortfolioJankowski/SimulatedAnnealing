@@ -15,7 +15,7 @@ public abstract class BaseIntegrationTest : IClassFixture<DatabaseEndpointFactor
     private readonly IServiceScope _scope;
     protected readonly IDbRepository _dbRepository; //particular test class will have access to this one
     protected readonly IUserService _userService;
-    protected readonly ConfigurationRequestBody _configurationRequestBody;
+    protected readonly InitialStateRequest _configurationRequestBody;
     protected readonly LocalResultsRequestBody _localResultsRequestBody;  
 
     protected BaseIntegrationTest(DatabaseEndpointFactory factory)
@@ -31,7 +31,7 @@ public abstract class BaseIntegrationTest : IClassFixture<DatabaseEndpointFactor
             VoivodeshipName = "małopolskie"
         };
 
-        _configurationRequestBody = new ConfigurationRequestBody()
+        _configurationRequestBody = new InitialStateRequest()
         {
             Year = 2024,
             VoivodeshipName = "małopolskie"

@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Server.Models.Algorithm;
@@ -35,9 +34,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserService, UserService>();
         services.AddTransient<AuthMiddleware>();
-        services.AddScoped<IValidator<ConfigurationRequestBody>, ConfigurationRequestBodyValidator>();
+        services.AddScoped<IValidator<InitialStateRequest>, ConfigurationRequestBodyValidator>();
         services.AddScoped<IValidator<LocalResultsRequestBody>, LocalResultsRequestBodyValidator>();
         services.Configure<AvailableDirstricsOptions>(configuration.GetSection("AvailableDistricts"));
+        services.AddDistributedMemoryCache();
     }
 }
 

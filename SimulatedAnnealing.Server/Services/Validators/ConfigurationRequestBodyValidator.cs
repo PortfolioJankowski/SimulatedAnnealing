@@ -5,7 +5,7 @@ using SimulatedAnnealing.Server.Models.DTOs;
 
 namespace SimulatedAnnealing.Server.Services.Validators;
 
-public class ConfigurationRequestBodyValidator : AbstractValidator<ConfigurationRequestBody>
+public class ConfigurationRequestBodyValidator : AbstractValidator<InitialStateRequest>
 {
     public ConfigurationRequestBodyValidator(IOptions<AvailableDirstricsOptions> availableDistricts)
     {

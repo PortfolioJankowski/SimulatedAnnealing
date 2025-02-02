@@ -1,8 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using SimulatedAnnealing.Server.Models.Algorithm;
 using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using SimulatedAnnealing.Server.Models.DTOs;
+using SimulatedAnnealing.Server.Models.Exceptions;
+using System.Net;
+using System.Text.Json;
 
 namespace SimulatedAnnealing.Server.Services.Database;
 
@@ -11,31 +15,69 @@ public class DbRepository : IDbRepository
     private readonly PhdApiContext _context;
     private readonly IOptions<AvailableDirstricsOptions> _availableDistricts;
     private readonly ILogger _logger;
+    private readonly IDistributedCache _distributedCache;
 
-    private readonly IConfiguration _configuration;
-
-    public DbRepository(PhdApiContext context, ILogger<DbRepository> logger,  IOptions<AvailableDirstricsOptions> availableDistricts)
+    public DbRepository(PhdApiContext context, ILogger<DbRepository> logger,  
+                        IOptions<AvailableDirstricsOptions> availableDistricts, IDistributedCache distributedCache)
     {
         _context = context;
         _logger = logger;
         _availableDistricts = availableDistricts;
+        _distributedCache = distributedCache;
     }
 
-    public async Task<Voivodeship?> GetVoivodeshipAsync(ConfigurationRequestBody request)
+    public async Task<Voivodeship?> GetVoivodeshipAsync(InitialStateRequest request)
     {
-        // Check the cache first
-        var cachedVoivodeship = Cache.GetVoivodeshipQueryable();
-        if (cachedVoivodeship != null)
-            return await cachedVoivodeship.FirstOrDefaultAsync();
+        string key = $"voivodeship-{request.VoivodeshipName}-{request.Year}";
 
-        // Load best parties from configuration
-       //var bestParties = _configuration.GetSection($"{_bestParties}:{request.Year}:{request.VoivodeshipName.ToLower()}").Get<List<string>>();
-        var districts = _availableDistricts.Value.Districts;
-        var bestParties = districts[request.VoivodeshipName.ToLower()][request.Year.ToString()].ToList();
+        return await _distributedCache.GetOrCreateAsync(key, async token =>
+        {
+            return await GetVoivodeshipFromDatabaseAsync(request);
+        });  
+    }
+    public async Task<GerrymanderingResult?> GetGerrymanderringResultsAsync(LocalResultsRequestBody request)
+    {
+        string key = $"results-{request.VoivodeshipName}-{request.Year}-{request.PoliticalParty}";
 
+        return await _distributedCache.GetOrCreateAsync(key, async token =>
+        {
+            return await GetGerrymanderringResultsFromDatabaseAsync(request);
+        });
+    }
+
+    private async Task<GerrymanderingResult?> GetGerrymanderringResultsFromDatabaseAsync(LocalResultsRequestBody request)
+    {
         try
         {
-            // Fetch voivodeship and related data from the database
+            var results = await _context.GerrymanderingResults
+                                    .Where(r => r.ChoosenParty == request.PoliticalParty
+                                                && r.ElectoralYear == request.Year
+                                                && r.Voivodeship == request.VoivodeshipName)
+                                    .OrderByDescending(r => r.FinalScore)
+                                    .FirstAsync();
+            if (results == null)
+                throw new GerrymanderringResultsNotFoundException($"Gerrymanderring result not found for " +
+                    $"{request.PoliticalParty} in {request.Year} located in {request.VoivodeshipName}");
+            return results;
+        } 
+        catch (GerrymanderringResultsNotFoundException e)
+        {
+            throw;
+        } 
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error occurred while fetching gerrymandering results for " +
+                $"{request.VoivodeshipName} in {request.Year} located in {request.VoivodeshipName}");
+            throw;
+        }
+        
+    }
+
+    private async Task<Voivodeship?> GetVoivodeshipFromDatabaseAsync(InitialStateRequest request)
+    {
+        try
+        {
+            var bestParties = GetBestPartiesFromConfig(request);
             var voivodeship = _context.Voivodeships
                 .Where(v => v.Name == request.VoivodeshipName)
                 .Include(v => v.Districts)
@@ -45,61 +87,56 @@ public class DbRepository : IDbRepository
                 .AsQueryable();
 
             var currentVoivodeship = await voivodeship.FirstOrDefaultAsync();
+
             if (currentVoivodeship == null)
-                 return await Task.FromResult<Voivodeship?>(null);
+                throw new VoivodeshipNotFoundException($"Voivodeship '{request.VoivodeshipName}' for year {request.Year} not found.");
 
-            var neighbors = await _context.Neighbors.AsQueryable().ToListAsync();
-            var counties = await _context.Counties.AsQueryable().ToListAsync();
+            return await GetVoivodeshipNeighborsAsync(currentVoivodeship);
+        }
+        catch (VoivodeshipNotFoundException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error occurred while fetching voivodeship '{VoivodeshipName}' for year {Year}.", request.VoivodeshipName, request.Year);
+            throw; 
+        }
+    }
 
-            // Set caches
-            Cache.SetVoivodeshipIQueryable(voivodeship);
-            Cache.SetCountiesIQueryable(counties.AsQueryable());
-            Cache.SetNeighborsIQueryable(neighbors.AsQueryable());
+    private async Task<Voivodeship> GetVoivodeshipNeighborsAsync(Voivodeship voivodeship)
+    {
+        var neighbors = await _context.Neighbors.AsQueryable().ToListAsync();
+        var counties = await _context.Counties.AsQueryable().ToListAsync();
 
-            var neighborLookup = neighbors
+        var neighborLookup = neighbors
                 .GroupBy(n => n.CountyId)
                 .ToDictionary(g => g.Key, g => g.Select(n => n.NeighborId).ToList());
 
-            currentVoivodeship.Districts
-                .SelectMany(district => district.Counties)
-                .ToList()
-                .ForEach(county =>
+        voivodeship.Districts
+            .SelectMany(district => district.Counties)
+            .ToList()
+            .ForEach(county =>
+            {
+                if (neighborLookup.TryGetValue(county.CountyId, out var neighborIds))
                 {
-                    if (neighborLookup.TryGetValue(county.CountyId, out var neighborIds))
-                    {
-                        county.NeighboringCounties = counties
-                            .Where(c => neighborIds.Contains(c.CountyId))
-                            .ToList();
-                    }
-                });
+                    county.NeighboringCounties = counties
+                        .Where(c => neighborIds.Contains(c.CountyId))
+                        .ToList();
+                }
+            });
 
-            return currentVoivodeship;
-        }
-        catch (Exception ex)
-        {
-            var errorMessage = "An error occurred while fetching the voivodeship data.";
-            _logger.LogError(ex, errorMessage);
-            return await Task.FromResult<Voivodeship?>(null);
-        }
+        return voivodeship;
     }
 
-    public async Task<GerrymanderingResult?> GetGerrymanderringResults(LocalResultsRequestBody request)
+    private List<string> GetBestPartiesFromConfig(InitialStateRequest request)
     {
-        try
-        {
-            return await _context.GerrymanderingResults
-                .Where(r => r.ChoosenParty == request.PoliticalParty
-                            && r.ElectoralYear == request.Year
-                            && r.Voivodeship == request.VoivodeshipName)
-                .OrderByDescending(r => r.FinalScore)
-                .FirstAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving local results for Party: {request.PoliticalParty}, Year: {request.Year}, Voivodeship: {request.VoivodeshipName}", ex.Message);
-            return null; 
-        }
+        var districts = _availableDistricts.Value.Districts;
+        var bestParties = districts[request.VoivodeshipName.ToLower()][request.Year.ToString()].ToList();
+        return bestParties;
     }
+
+    
 
 }
 

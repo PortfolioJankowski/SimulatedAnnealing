@@ -17,13 +17,13 @@ public class DatabaseEndpointsTests : IClassFixture<DatabaseEndpointFactory>
 {
     private readonly HttpClient _client;
     private readonly DatabaseEndpointFactory _factory;
-    private readonly ConfigurationRequestBody _configurationRequestBody;
+    private readonly InitialStateRequest _configurationRequestBody;
     private static string _token;
     public DatabaseEndpointsTests(DatabaseEndpointFactory factory)
     {
         _factory = factory;
         _client = _factory.CreateClient();
-        _configurationRequestBody = new ConfigurationRequestBody()
+        _configurationRequestBody = new InitialStateRequest()
         {
             VoivodeshipName = "małopolskie",
             Year = 2024
@@ -52,7 +52,7 @@ public class DatabaseEndpointsTests : IClassFixture<DatabaseEndpointFactory>
     public async Task GetInitialState_ReturnsBadRequest_WhenRequestIsEmpty()
     {
         // Act
-        var response = await _client.PostAsJsonAsync("api/Database/GetInitialState", new ConfigurationRequestBody());
+        var response = await _client.PostAsJsonAsync("api/Database/GetInitialState", new InitialStateRequest());
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
