@@ -1,5 +1,5 @@
 ﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
-using SimulatedAnnealing.Server.Services.Behavioral;
+using Newtonsoft.Json;
 
 namespace SimulatedAnnealing.Server.Models.Algorithm.Variable;
 
@@ -11,5 +11,6 @@ public class VoivodeshipState
     public int VoivodeshipSeatsAmount { get; set; }
     public int VoivodeshipInhabitants { get; set; }
     public Dictionary<District, Dictionary<string, int>>? DistrictVotingResults { get; set; }   
+
 }
 

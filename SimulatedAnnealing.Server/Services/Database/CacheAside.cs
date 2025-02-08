@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
 public static class CacheAside
 {
@@ -44,12 +46,8 @@ public static class CacheAside
                 return default;
             }
 
-            // TODO  System.Text.Json.JsonException: A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 64.
-            //await cache.SetStringAsync(key, JsonSerializer.Serialize(value), options ?? Default, cancellationToken);
-
             var serialized = JsonConvert.SerializeObject(value, Formatting.None, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore});
             await cache.SetStringAsync(key, serialized, options ?? Default, cancellationToken);
-
         }
         finally
         {

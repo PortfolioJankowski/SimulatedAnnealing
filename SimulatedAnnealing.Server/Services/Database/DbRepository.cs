@@ -1,13 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using SimulatedAnnealing.Server.Models.Algorithm;
 using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Models.Exceptions;
-using System.Net;
-using System.Text.Json;
 
 namespace SimulatedAnnealing.Server.Services.Database;
 
@@ -44,6 +43,18 @@ public class DbRepository : IDbRepository
         {
             return await GetGerrymanderringResultsFromDatabaseAsync(request);
         });
+    }
+
+    public async Task<Voivodeship> GetVoivodeShipClone(Voivodeship toClone)
+    {
+        string key = $"voivodeship-{toClone.Name}*";
+        var cachedJson = await _distributedCache.GetStringAsync(key);
+
+        if (string.IsNullOrEmpty(cachedJson))
+            throw new ArgumentNullException($"No cached Voivodeship foun {toClone.Name}");
+
+        var blueprint = JsonConvert.DeserializeObject<Voivodeship>(cachedJson);
+        return blueprint!.DeepClone(blueprint, toClone);
     }
 
     private async Task<GerrymanderingResult?> GetGerrymanderringResultsFromDatabaseAsync(LocalResultsRequest request)
