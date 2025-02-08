@@ -5,9 +5,9 @@ using SimulatedAnnealing.Server.Models.DTOs;
 
 namespace SimulatedAnnealing.Server.Services.Validators;
 
-public class ConfigurationRequestBodyValidator : AbstractValidator<InitialStateRequest>
+public class InitialStateRequestValidator : AbstractValidator<InitialStateRequest>
 {
-    public ConfigurationRequestBodyValidator(IOptions<AvailableDirstricsOptions> availableDistricts)
+    public InitialStateRequestValidator(IOptions<AvailableDirstricsOptions> availableDistricts)
     {
         var districts = availableDistricts.Value.Districts;
 

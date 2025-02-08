@@ -1,4 +1,5 @@
 ﻿using SimulatedAnnealing.Server.Models.Algorithm.Variable;
+using SimulatedAnnealing.Server.Models.Requests;
 
 namespace SimulatedAnnealing.Server.Services.Behavioral;
 public class SimulatedAnnealingService
@@ -8,7 +9,7 @@ public class SimulatedAnnealingService
     {
         _complianceService = complianceService;
     }
-    public DistrictState Optimize()
+    public DistrictState Optimize(OptimizeLocalDistrictsRequest request)
     {
 
         return new DistrictState(_complianceService);

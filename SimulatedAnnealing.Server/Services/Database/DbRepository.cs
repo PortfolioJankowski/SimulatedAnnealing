@@ -35,7 +35,7 @@ public class DbRepository : IDbRepository
             return await GetVoivodeshipFromDatabaseAsync(request);
         });  
     }
-    public async Task<GerrymanderingResult?> GetGerrymanderringResultsAsync(LocalResultsRequestBody request)
+    public async Task<GerrymanderingResult?> GetGerrymanderringResultsAsync(LocalResultsRequest request)
     {
         string key = $"results-{request.VoivodeshipName}-{request.Year}-{request.PoliticalParty}";
 
@@ -45,7 +45,7 @@ public class DbRepository : IDbRepository
         });
     }
 
-    private async Task<GerrymanderingResult?> GetGerrymanderringResultsFromDatabaseAsync(LocalResultsRequestBody request)
+    private async Task<GerrymanderingResult?> GetGerrymanderringResultsFromDatabaseAsync(LocalResultsRequest request)
     {
         try
         {
@@ -58,6 +58,7 @@ public class DbRepository : IDbRepository
             if (results == null)
                 throw new GerrymanderringResultsNotFoundException($"Gerrymanderring result not found for " +
                     $"{request.PoliticalParty} in {request.Year} located in {request.VoivodeshipName}");
+
             return results;
         } 
         catch (GerrymanderringResultsNotFoundException e)
@@ -79,6 +80,7 @@ public class DbRepository : IDbRepository
         {
             var bestParties = GetBestPartiesFromConfig(request);
             var voivodeship = _context.Voivodeships
+                .AsNoTracking()
                 .Where(v => v.Name == request.VoivodeshipName)
                 .Include(v => v.Districts)
                     .ThenInclude(d => d.Counties)

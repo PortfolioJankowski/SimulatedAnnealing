@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Server.Models.Algorithm;
 using SimulatedAnnealing.Server.Models.Authentication;
 using SimulatedAnnealing.Server.Models.DTOs;
+using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Algorithm;
 using SimulatedAnnealing.Server.Services.Authentication;
 using SimulatedAnnealing.Server.Services.Behavioral;
@@ -34,10 +35,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserService, UserService>();
         services.AddTransient<AuthMiddleware>();
-        services.AddScoped<IValidator<InitialStateRequest>, ConfigurationRequestBodyValidator>();
-        services.AddScoped<IValidator<LocalResultsRequestBody>, LocalResultsRequestBodyValidator>();
+        services.AddScoped<IValidator<InitialStateRequest>, InitialStateRequestValidator>();
+        services.AddScoped<IValidator<LocalResultsRequest>, LocalResultsRequestValidator>();
+        services.AddScoped<IValidator<OptimizeLocalDistrictsRequest>, OptimizeLocalDistrictsRequestValidator>();
+        
         services.Configure<AvailableDirstricsOptions>(configuration.GetSection("AvailableDistricts"));
         services.AddDistributedMemoryCache();
     }
 }
-
+ 

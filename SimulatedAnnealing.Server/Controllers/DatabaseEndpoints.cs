@@ -15,7 +15,7 @@ public static class DatabaseEndpoints
         app.MapPost("api/Database/GetInitialState", GetInitialState).RequireAuthorization();
     }
 
-    public static async Task<IResult> GetLocalResults([FromBody] LocalResultsRequestBody request, IDbRepository dbRepository, IValidator<LocalResultsRequestBody> validator) //DI into Method
+    public static async Task<IResult> GetLocalResults([FromBody] LocalResultsRequest request, IDbRepository dbRepository, IValidator<LocalResultsRequest> validator) //DI into Method
     {
         var validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)

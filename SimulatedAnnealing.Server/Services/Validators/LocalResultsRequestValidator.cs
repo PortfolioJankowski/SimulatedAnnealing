@@ -7,9 +7,9 @@ using SimulatedAnnealing.Server.Models.DTOs;
 
 namespace SimulatedAnnealing.Server.Services.Validators;
 
-public class LocalResultsRequestBodyValidator : AbstractValidator<LocalResultsRequestBody>
+public class LocalResultsRequestValidator : AbstractValidator<LocalResultsRequest>
 {
-    public LocalResultsRequestBodyValidator(IOptions<AvailableDirstricsOptions> availableDistricts)
+    public LocalResultsRequestValidator(IOptions<AvailableDirstricsOptions> availableDistricts)
     {
         var districts = availableDistricts.Value;
 
@@ -18,7 +18,7 @@ public class LocalResultsRequestBodyValidator : AbstractValidator<LocalResultsRe
             .WithMessage("Invalid voivodeship or year provided.");
     }
 
-    private bool IsValidRequest(LocalResultsRequestBody request,  AvailableDirstricsOptions districts)
+    private bool IsValidRequest(LocalResultsRequest request,  AvailableDirstricsOptions districts)
     {
         if (!districts.Districts.TryGetValue(request.VoivodeshipName.ToLower(), out var availableYears))
             return false; 

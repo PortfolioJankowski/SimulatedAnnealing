@@ -7,5 +7,5 @@ namespace SimulatedAnnealing.Server.Services.Database;
 public interface IDbRepository
 {
     Task<Voivodeship?> GetVoivodeshipAsync(InitialStateRequest request);
-    Task<GerrymanderingResult?> GetGerrymanderringResultsAsync(LocalResultsRequestBody request);
+    Task<GerrymanderingResult?> GetGerrymanderringResultsAsync(LocalResultsRequest request);
 }

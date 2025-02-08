@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimulatedAnnealing.Server.Models.Algorithm.Variable;
+using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Behavioral;
+using System.Text;
 
 namespace SimulatedAnnealing.Server.Controllers;
 
@@ -12,16 +15,24 @@ public class AlgorithmController : Controller
 {
     private readonly ILogger<AlgorithmController> _logger;
     private readonly SimulatedAnnealingService _simulatedAnnealingService;
-    public AlgorithmController(ILogger<AlgorithmController> logger, SimulatedAnnealingService simulatedAnnealingService)
+    private readonly IValidator<OptimizeLocalDistrictsRequest> _validator;
+    public AlgorithmController(ILogger<AlgorithmController> logger, SimulatedAnnealingService simulatedAnnealingService, IValidator<OptimizeLocalDistrictsRequest> validator)
     {
         _logger = logger;
         _simulatedAnnealingService = simulatedAnnealingService;
+        _validator = validator;
     }
 
-    [HttpGet("Optimize")]
-    public DistrictState GetOptimisedVoivodeship()
+    [HttpPost("OptimizeLocal")]
+    public ActionResult<DistrictState> GetOptimisedVoivodeship([FromBody] OptimizeLocalDistrictsRequest districtsRequest)
     {
-        return _simulatedAnnealingService.Optimize();
+        var validationResult = _validator.Validate(districtsRequest);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(new { message = errors });
+        }
+        return _simulatedAnnealingService.Optimize(districtsRequest);
     }
 
     [HttpGet("test")]

@@ -16,7 +16,7 @@ public abstract class BaseIntegrationTest : IClassFixture<DatabaseEndpointFactor
     protected readonly IDbRepository _dbRepository; //particular test class will have access to this one
     protected readonly IUserService _userService;
     protected readonly InitialStateRequest _configurationRequestBody;
-    protected readonly LocalResultsRequestBody _localResultsRequestBody;  
+    protected readonly LocalResultsRequest _localResultsRequestBody;  
 
     protected BaseIntegrationTest(DatabaseEndpointFactory factory)
     {
@@ -24,7 +24,7 @@ public abstract class BaseIntegrationTest : IClassFixture<DatabaseEndpointFactor
         _dbRepository = _scope.ServiceProvider.GetRequiredService<IDbRepository>();
         _userService = _scope.ServiceProvider.GetRequiredService<IUserService>();   
 
-        _localResultsRequestBody = new LocalResultsRequestBody()
+        _localResultsRequestBody = new LocalResultsRequest()
         {
             PoliticalParty = "KOMITET WYBORCZY PRAWO I SPRAWIEDLIWOŚĆ",
             Year = 2024,
