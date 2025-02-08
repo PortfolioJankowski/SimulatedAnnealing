@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
+using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.Authentication;
 
 namespace SimulatedAnnealing.Server.Services.Database;

@@ -21,7 +21,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<PhdApiContext>(options => options.UseSqlServer(configuration.GetConnectionString(_connectionStringName)));
         services.AddScoped<IDbRepository, DbRepository>();
-        services.AddScoped<StateBuilder, StateBuilder>();
+        services.AddScoped<VoivodeshipStateBuilder, VoivodeshipStateBuilder>();
         services.AddScoped<ComplianceService, ComplianceService>();
         services.AddScoped<SimulatedAnnealingService, SimulatedAnnealingService>();
         services.AddIdentity<AppUser, IdentityRole>(options =>

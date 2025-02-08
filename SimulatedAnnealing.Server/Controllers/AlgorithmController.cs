@@ -24,7 +24,7 @@ public class AlgorithmController : Controller
     }
 
     [HttpPost("OptimizeLocal")]
-    public ActionResult<DistrictState> GetOptimisedVoivodeship([FromBody] OptimizeLocalDistrictsRequest districtsRequest)
+    public ActionResult<VoivodeshipState> GetOptimisedVoivodeship([FromBody] OptimizeLocalDistrictsRequest districtsRequest)
     {
         var validationResult = _validator.Validate(districtsRequest);
         if (!validationResult.IsValid)
@@ -32,7 +32,8 @@ public class AlgorithmController : Controller
             var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
             return BadRequest(new { message = errors });
         }
-        return _simulatedAnnealingService.Optimize(districtsRequest);
+        return new VoivodeshipState();
+        //return _simulatedAnnealingService.Optimize(districtsRequest);
     }
 
     [HttpGet("test")]

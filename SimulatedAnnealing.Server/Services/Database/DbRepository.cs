@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using SimulatedAnnealing.Server.Models.Algorithm;
 using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
+using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Models.Exceptions;
 using System.Net;
