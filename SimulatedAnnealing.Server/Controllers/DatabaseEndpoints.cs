@@ -2,7 +2,6 @@
 using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Services.Database;
 using FluentValidation;
-using Microsoft.Extensions.Caching.Distributed;
 
 namespace SimulatedAnnealing.Server.Controllers;
 

@@ -14,16 +14,18 @@ public class SimulatedAnnealingService
     private readonly VoivodeshipStateBuilder _stateBuilder;
     private readonly Random _random;
     private readonly Geolocator _geolocator;
+    private readonly IConfiguration _configuration;
     
-    public SimulatedAnnealingService(ComplianceService complianceService, IDbRepository dbRepository, VoivodeshipStateBuilder stateBuilder)
+    public SimulatedAnnealingService(ComplianceService complianceService, IDbRepository dbRepository, VoivodeshipStateBuilder stateBuilder, IConfiguration configuration)
     {
         _complianceService = complianceService;
         _dbRepository = dbRepository;
         _stateBuilder = stateBuilder;
         _random = new Random();
         _geolocator = new Geolocator();
+        _configuration = configuration;
     }
-    public async Task<VoivodeshipState> Optimize(OptimizeLocalDistrictsRequest request)
+    public async Task<object> Optimize(OptimizeLocalDistrictsRequest request)
     {
         var currentSolution = _stateBuilder
             .SetVoivodeship(request.DistrictInformation).Result
@@ -35,8 +37,9 @@ public class SimulatedAnnealingService
             .Build();
             
         var algorithmConfiguration = request.AlgorithmConfiguration;
+        var initialScore = currentSolution.Indicator!.Score;
         var bestSolution = currentSolution;
-        var bestObjective = currentSolution.Indicator!.Score;
+        var bestObjective = initialScore;
 
         int neighboursAmount = 5;
         var currentObjective = currentSolution.Indicator!.Score;
@@ -62,15 +65,25 @@ public class SimulatedAnnealingService
             }
             algorithmConfiguration.Temperature *= algorithmConfiguration.CoolingRate;
         }
-        return bestSolution;
+        return new
+        {
+           // newSolution = bestSolution,
+            startScore = initialScore,
+            optimizedScore = bestSolution.Indicator.Score
+        };
     }
 
     private VoivodeshipState GetBestRandomSolution(List<VoivodeshipState> randomStates, OptimizeLocalDistrictsRequest request)
     {
+        var maxSeats = _configuration.GetSection("DistrictsSeats").GetValue<int>(request.DistrictInformation.VoivodeshipName);
+        
         randomStates
-            .ForEach(state => IndicatorService.SetNewIndicator(state, request));
+            .ForEach(state => state.DistrictVotingResults = _complianceService.CalculateResultsForDistricts(state.ActualConfiguration, maxSeats, state.PopulationIndex, request.DistrictInformation.PoliticalParty));
 
-        return randomStates.OrderByDescending(state => state.Indicator).First();
+        randomStates
+            .ForEach(state => state.Indicator = IndicatorService.SetNewIndicator(state, request));
+
+        return randomStates.OrderByDescending(state => state.Indicator!.Score).First();
     }
 
     private async Task<List<VoivodeshipState>> GenerateRandomSolutions(VoivodeshipState currentSolution, double stepsize, int neighboursAmount, int year)

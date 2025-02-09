@@ -20,7 +20,7 @@ public  class Geolocator
     public bool IsDistrictBoundariesUnbroken(District district)
     {
         if (district.Counties.Count == 0)
-            throw new DistrictWithNoCountiesException($"Found district {district.Name} with no counties!");
+            return false;
 
         HashSet<int> visited = new HashSet<int>();
         Queue<County> queue = new Queue<County>();
