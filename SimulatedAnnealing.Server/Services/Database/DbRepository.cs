@@ -45,9 +45,9 @@ public class DbRepository : IDbRepository
         });
     }
 
-    public async Task<Voivodeship> GetVoivodeShipClone(Voivodeship toClone)
+    public async Task<Voivodeship> GetVoivodeShipClone(Voivodeship toClone, int year)
     {
-        string key = $"voivodeship-{toClone.Name}*";
+        string key = $"voivodeship-{toClone.Name}-{year}";
         var cachedJson = await _distributedCache.GetStringAsync(key);
 
         if (string.IsNullOrEmpty(cachedJson))

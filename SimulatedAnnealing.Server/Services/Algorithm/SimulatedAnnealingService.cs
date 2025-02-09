@@ -31,6 +31,7 @@ public class SimulatedAnnealingService
             .CalculateVoievodianshipSeatsAmount()
             .CalculatePopulationIndex()
             .CalculateDistrictResults(request.DistrictInformation.PoliticalParty)
+            .CalculateScore(request)
             .Build();
             
         var algorithmConfiguration = request.AlgorithmConfiguration;
@@ -43,8 +44,8 @@ public class SimulatedAnnealingService
 
         for (int i = 0; i < algorithmConfiguration.MaxIterations; i++)
         {
-            var randomStates = await GenerateRandomSolutions(currentSolution, algorithmConfiguration.StepSize, neighboursAmount);
-            var bestRandomSolution = GetBestRandomSolution(randomStates);
+            var randomStates = await GenerateRandomSolutions(currentSolution, algorithmConfiguration.StepSize, neighboursAmount, request.DistrictInformation.Year);
+            var bestRandomSolution = GetBestRandomSolution(randomStates, request);
             bestRandomSolutionObjective = bestRandomSolution.Indicator!.Score;
 
             if (bestRandomSolutionObjective > currentObjective ||
@@ -64,24 +65,27 @@ public class SimulatedAnnealingService
         return bestSolution;
     }
 
-    private VoivodeshipState GetBestRandomSolution(List<VoivodeshipState> randomStates)
+    private VoivodeshipState GetBestRandomSolution(List<VoivodeshipState> randomStates, OptimizeLocalDistrictsRequest request)
     {
-        throw new NotImplementedException();
+        randomStates
+            .ForEach(state => IndicatorService.SetNewIndicator(state, request));
+
+        return randomStates.OrderByDescending(state => state.Indicator).First();
     }
 
-    private async Task<List<VoivodeshipState>> GenerateRandomSolutions(VoivodeshipState currentSolution, double stepsize, int neighboursAmount)
+    private async Task<List<VoivodeshipState>> GenerateRandomSolutions(VoivodeshipState currentSolution, double stepsize, int neighboursAmount, int year)
     {
         var solutions = new List<VoivodeshipState>();
         for (int i = 0; i < neighboursAmount; i++)
         {
-            solutions.Add(await GenerateSolution(currentSolution, stepsize));
+            solutions.Add(await GenerateSolution(currentSolution, stepsize, year));
         }
         return solutions;
     }
 
-    private async Task<VoivodeshipState> GenerateSolution(VoivodeshipState voivodeshipState, double stepsize)
+    private async Task<VoivodeshipState> GenerateSolution(VoivodeshipState voivodeshipState, double stepsize, int year)
     {
-        var voivodeshipClone = await _dbRepository.GetVoivodeShipClone(voivodeshipState.ActualConfiguration);
+        var voivodeshipClone = await _dbRepository.GetVoivodeShipClone(voivodeshipState.ActualConfiguration, year);
         voivodeshipClone = await MoveRandomCounty(voivodeshipClone, voivodeshipState.PopulationIndex);
 
         if (!_complianceService.AreLegalRequirementsMet(voivodeshipClone, voivodeshipState.PopulationIndex))
@@ -141,6 +145,7 @@ public class SimulatedAnnealingService
 
     private bool AreDistrictsValid(Voivodeship voivodeship, District neighboringDistrict, District randomDistrict, double populationIndex)
     {
+        //TODO ERROR "DistrictWithNoCountiesException: Found district 3 with no counties!"
         if (_geolocator.IsDistrictBoundariesUnbroken(randomDistrict) && _geolocator.IsDistrictBoundariesUnbroken(neighboringDistrict))
         {
             foreach (var dist in voivodeship.Districts)
@@ -160,14 +165,5 @@ public class SimulatedAnnealingService
         randomDistrict.Counties.Add(randomCounty);
         neighboringDistrict.Counties.Remove(randomCounty);
         return config;
-    }
-
-    private InitialStateRequest GetInitialStateRequestFromOptimizeDistrictRequest(OptimizeLocalDistrictsRequest request)
-    {
-        return new InitialStateRequest()
-        {
-            VoivodeshipName = request.DistrictInformation.VoivodeshipName,
-            Year = request.DistrictInformation.Year,
-        };
     }
 }

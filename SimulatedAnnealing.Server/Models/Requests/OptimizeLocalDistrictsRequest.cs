@@ -16,5 +16,7 @@ namespace SimulatedAnnealing.Server.Models.Requests
         public long MaxIterations { get; set; }
         public double PackingThreshold { get; set;}
         public double CrackingThreshold { get; set; }
+        public double PackingWeight { get; set; }   
+        public double CrackingWeight { get;set; }
     }
 }

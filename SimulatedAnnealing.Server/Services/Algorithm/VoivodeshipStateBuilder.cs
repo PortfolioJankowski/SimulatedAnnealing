@@ -1,5 +1,6 @@
 ﻿using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.DTOs;
+using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Behavioral;
 using SimulatedAnnealing.Server.Services.Database;
 
@@ -9,6 +10,7 @@ public class VoivodeshipStateBuilder
     private readonly VoivodeshipState _voivodeshipState = new();
     private readonly ComplianceService _complianceService;
     private readonly IDbRepository _dbRepository;
+  
     public VoivodeshipStateBuilder(ComplianceService complianceService, IDbRepository dbRepository)
     {
         _complianceService = complianceService;
@@ -50,6 +52,12 @@ public class VoivodeshipStateBuilder
     public VoivodeshipStateBuilder CalculateDistrictResults(string choosenParty)
     {
         _voivodeshipState.DistrictVotingResults = _complianceService.CalculateResultsForDistricts(_voivodeshipState.ActualConfiguration!, _voivodeshipState.VoivodeshipSeatsAmount, _voivodeshipState.PopulationIndex, choosenParty);
+        return this;
+    }
+
+    internal VoivodeshipStateBuilder CalculateScore(OptimizeLocalDistrictsRequest request)
+    {
+        _voivodeshipState.Indicator = IndicatorService.SetNewIndicator(_voivodeshipState, request);
         return this;
     }
 }

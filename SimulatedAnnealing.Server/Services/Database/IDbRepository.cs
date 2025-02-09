@@ -9,5 +9,5 @@ public interface IDbRepository
 {
     Task<Voivodeship?> GetVoivodeshipAsync(InitialStateRequest request);
     Task<GerrymanderingResult?> GetGerrymanderringResultsAsync(LocalResultsRequest request);
-    Task<Voivodeship> GetVoivodeShipClone(Voivodeship toClone);
+    Task<Voivodeship> GetVoivodeShipClone(Voivodeship toClone, int year);
 }
