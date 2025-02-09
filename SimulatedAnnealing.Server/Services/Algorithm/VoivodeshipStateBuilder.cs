@@ -47,9 +47,9 @@ public class VoivodeshipStateBuilder
         return this;
     }
 
-    public VoivodeshipStateBuilder CalculateDistrictResults()
+    public VoivodeshipStateBuilder CalculateDistrictResults(string choosenParty)
     {
-        _voivodeshipState.DistrictVotingResults = _complianceService.CalculateResultsForDistricts(_voivodeshipState.ActualConfiguration!, _voivodeshipState.VoivodeshipSeatsAmount, _voivodeshipState.PopulationIndex);
+        _voivodeshipState.DistrictVotingResults = _complianceService.CalculateResultsForDistricts(_voivodeshipState.ActualConfiguration!, _voivodeshipState.VoivodeshipSeatsAmount, _voivodeshipState.PopulationIndex, choosenParty);
         return this;
     }
 }

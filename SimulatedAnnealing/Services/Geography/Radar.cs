@@ -55,7 +55,7 @@ namespace SimulatedAnnealing.Services.Geography
             queue.Enqueue(startCounty);
             visited.Add(startCounty.PowiatId);
 
-            while (queue.Count > 0)
+            while (queue.Count > 0) 
             {
                 var currentCounty = queue.Dequeue();
 
