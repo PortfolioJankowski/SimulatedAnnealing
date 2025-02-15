@@ -23,27 +23,31 @@ public  class Geolocator
             return false;
 
         HashSet<int> visited = new HashSet<int>();
-        Queue<County> queue = new Queue<County>();
+        Queue<County> countyQueue = new Queue<County>();
+        HashSet<int> countyIds = district.Counties.Select(c => c.CountyId).ToHashSet();
 
-        //BFS algorithm implementation
+        // BFS algorithm implementation
         var startCounty = district.Counties.First();
-        queue.Enqueue(startCounty);
+        countyQueue.Enqueue(startCounty);
         visited.Add(startCounty.CountyId);
-        while (queue.Count > 0)
+
+        while (countyQueue.Count > 0)
         {
-            var currentCounty = queue.Dequeue();
-            foreach(var neighbor in currentCounty.NeighboringCounties)
+            var currentCounty = countyQueue.Dequeue();
+            foreach (var neighbor in currentCounty.NeighboringCounties)
             {
-                if (district.Counties.Any(c => c.CountyId == neighbor.CountyId) && !visited.Contains(neighbor.CountyId))
+                //NEIGHBORING NIE MAJĄ NIC! TRZEBA W REPOZYTORIUM DODAĆ W NICH POWIATY ITD
+                if (countyIds.Contains(neighbor.CountyId) && !visited.Contains(neighbor.CountyId))
                 {
                     visited.Add(neighbor.CountyId);
-                    queue.Enqueue(neighbor);
+                    countyQueue.Enqueue(district.Counties.Where(c => c.CountyId == neighbor.CountyId).First());
                 }
             }
         }
+
         return visited.Count == district.Counties.Count;
     }
-         
+
     private static bool AreCountiesNeighbouring(int randomCountyId, County county)
     {
         return county.NeighboringCounties.Any(c => c.CountyId == randomCountyId);
