@@ -15,6 +15,7 @@ public class SimulatedAnnealingService
     private readonly Random _random;
     private readonly Geolocator _geolocator;
     private readonly IConfiguration _configuration;
+    private const int RANDOM_COUNTIES_GENERATED_PER_ITERATION = 5;
     
     public SimulatedAnnealingService(ComplianceService complianceService, IDbRepository dbRepository, VoivodeshipStateBuilder stateBuilder, IConfiguration configuration)
     {
@@ -35,13 +36,13 @@ public class SimulatedAnnealingService
             .CalculateDistrictResults(request.DistrictInformation.PoliticalParty)
             .CalculateScore(request)
             .Build();
-            
+        var initialResult = GetInitialStateResults(currentSolution);    //for reaserch purpose
         var algorithmConfiguration = request.AlgorithmConfiguration;
         var initialScore = currentSolution.Indicator!.Score;
         var bestSolution = currentSolution;
         var bestObjective = initialScore;
 
-        int neighboursAmount = 5;
+        int neighboursAmount = RANDOM_COUNTIES_GENERATED_PER_ITERATION;
         var currentObjective = currentSolution.Indicator!.Score;
         var bestRandomSolutionObjective = 0d;
 
@@ -65,14 +66,71 @@ public class SimulatedAnnealingService
             }
             algorithmConfiguration.Temperature *= algorithmConfiguration.CoolingRate;
         }
+
+        var algorithmResults = GetAlgorithmResults(bestSolution);
         return new
         {
-           // newSolution = bestSolution,
+            // newSolution = bestSolution,
             startScore = initialScore,
+            initalResults = initialResult,
+            optimizedResults = algorithmResults.Item1,
+            newConfiguration = algorithmResults.Item2,
+            detailedResultsByDistrict = bestSolution.DistrictVotingResults,
             optimizedScore = bestSolution.Indicator.Score
         };
     }
 
+    //returns comitees with number of votes and districts numbers with
+    private static (Dictionary<string, int>, Dictionary<int, IEnumerable<string>>) GetAlgorithmResults(VoivodeshipState voivodeshipState)
+    {
+        Dictionary<string, int> seatsAmount = new Dictionary<string, int>();
+
+        var results = voivodeshipState.DistrictVotingResults;
+        foreach (var item in results!)
+        {
+            foreach (var value in item.Value)
+            {
+                if (seatsAmount.ContainsKey(value.Key))
+                {
+                    seatsAmount[value.Key] += value.Value;
+                } 
+                else
+                {
+                    seatsAmount.Add(value.Key, value.Value);
+                }
+            }
+        }
+
+        Dictionary<int, IEnumerable<string>> generatedCounties = new Dictionary<int, IEnumerable<string>>();
+        foreach (var district in voivodeshipState.ActualConfiguration.Districts)
+        {
+            generatedCounties.Add(district.DistrictId, district.Counties.Select(c => c.Name).ToList());
+        }
+        return (seatsAmount,  generatedCounties);
+    }
+
+    private static Dictionary<string, int> GetInitialStateResults(VoivodeshipState voivodeshipState)
+    {
+        Dictionary<string, int> seatsAmount = new Dictionary<string, int>();
+
+        var results = voivodeshipState.DistrictVotingResults;
+        foreach (var item in results!)
+        {
+            foreach (var value in item.Value)
+            {
+                if (seatsAmount.ContainsKey(value.Key))
+                {
+                    seatsAmount[value.Key] += value.Value;
+                }
+                else
+                {
+                    seatsAmount.Add(value.Key, value.Value);
+                }
+            }
+        }
+
+        return seatsAmount;
+    }
     private VoivodeshipState GetBestRandomSolution(List<VoivodeshipState> randomStates, OptimizeLocalDistrictsRequest request)
     {
         var maxSeats = _configuration.GetSection("DistrictsSeats").GetValue<int>(request.DistrictInformation.VoivodeshipName);
