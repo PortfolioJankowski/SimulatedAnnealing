@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Behavioral;
+using System.Collections;
 using System.Text;
 
 namespace SimulatedAnnealing.Server.Controllers;
