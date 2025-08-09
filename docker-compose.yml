@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: phd-db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Str0ngPa$$w0rd
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+
+  backend:
+    container_name: phd-backend
+    build:
+      context: .
+      dockerfile: SimulatedAnnealing.Server/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ConnectionStrings__PhdApi=Server=db;Database=PhdApi;User Id=sa;Password=Str0ngPa$$w0rd;TrustServerCertificate=True;
+    depends_on:
+      - db
+
+  frontend:
+     container_name: phd-frontend
+     build:
+       context: C:/Users/matja/source/repos/simmulated-annealing-front/
+       dockerfile: Dockerfile
+     ports:
+       - "3000:80"
+     depends_on:
+       - backend
+
+volumes:
+  sqldata:
