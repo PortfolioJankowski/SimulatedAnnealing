@@ -3,7 +3,7 @@ using SimulatedAnnealing.Server.Models.Authentication.Dto;
 using SimulatedAnnealing.Server.Services.Authentication;
 
 namespace SimulatedAnnealing.Server.Controllers;
-[Route("api/Account")]
+[Route("api/account")]
 [ApiController]
 public class AccountController : ControllerBase
 {
@@ -14,7 +14,7 @@ public class AccountController : ControllerBase
         _userService = userService;
     }
 
-    [HttpPost("Login")]
+    [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto loginDto)
     {
         if (!ModelState.IsValid)
@@ -27,7 +27,7 @@ public class AccountController : ControllerBase
         return Ok(user); 
     }
 
-    [HttpPost("Register")]
+    [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         if (!ModelState.IsValid)

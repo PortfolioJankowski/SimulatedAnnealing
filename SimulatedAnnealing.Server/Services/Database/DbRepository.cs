@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -51,7 +51,7 @@ public class DbRepository : IDbRepository
         var cachedJson = await _distributedCache.GetStringAsync(key);
 
         if (string.IsNullOrEmpty(cachedJson))
-            throw new ArgumentNullException($"No cached Voivodeship foun {toClone.Name}");
+            throw new VoivodeshipNotFoundException($"No cached Voivodeship found for {toClone.Name}");
 
         var blueprint = JsonConvert.DeserializeObject<Voivodeship>(cachedJson);
         return blueprint!.DeepClone(blueprint, toClone);
@@ -153,4 +153,3 @@ public class DbRepository : IDbRepository
     
 
 }
-

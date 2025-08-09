@@ -4,13 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Behavioral;
-using System.Collections;
-using System.Text;
 
 namespace SimulatedAnnealing.Server.Controllers;
 
 [ApiController]
-[Route("api/Algorithm")]
+[Route("api/algorithm")]
 [Authorize]
 public class AlgorithmController : Controller
 {
@@ -24,7 +22,7 @@ public class AlgorithmController : Controller
         _validator = validator;
     }
 
-    [HttpPost("OptimizeLocal")]
+    [HttpPost("optimize-local")]
     public async Task<ActionResult<VoivodeshipState>> GetOptimisedVoivodeship([FromBody] OptimizeLocalDistrictsRequest districtsRequest)
     {
         var validationResult = _validator.Validate(districtsRequest);

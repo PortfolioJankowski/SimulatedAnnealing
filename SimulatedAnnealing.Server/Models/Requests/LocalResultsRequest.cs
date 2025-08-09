@@ -1,7 +1,4 @@
-﻿using FluentValidation;
-using System.ComponentModel.DataAnnotations;
-
-namespace SimulatedAnnealing.Server.Models.DTOs;
+﻿namespace SimulatedAnnealing.Server.Models.DTOs;
 
 public class LocalResultsRequest
 {
