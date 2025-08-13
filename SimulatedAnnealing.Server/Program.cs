@@ -81,8 +81,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            
-            policy.WithOrigins("http://localhost:3000") 
+            policy.AllowAnyOrigin()
                   .AllowAnyHeader() 
                   .AllowAnyMethod(); 
         });
@@ -95,12 +94,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 //app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<AuthMiddleware>();
 app.MapControllers();
 app.MapDatabaseEndpoints();
-app.UseCors();
 app.Run();
 
 public partial class Program { }
