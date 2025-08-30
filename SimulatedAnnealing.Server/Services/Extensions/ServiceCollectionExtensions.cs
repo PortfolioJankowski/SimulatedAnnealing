@@ -8,6 +8,7 @@ using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Algorithm;
 using SimulatedAnnealing.Server.Services.Authentication;
 using SimulatedAnnealing.Server.Services.Behavioral;
+using SimulatedAnnealing.Server.Services.Configuration;
 using SimulatedAnnealing.Server.Services.Database;
 using SimulatedAnnealing.Server.Services.Middlewares;
 using SimulatedAnnealing.Server.Services.Validators;
@@ -38,8 +39,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValidator<InitialStateRequest>, InitialStateRequestValidator>();
         services.AddScoped<IValidator<LocalResultsRequest>, LocalResultsRequestValidator>();
         services.AddScoped<IValidator<OptimizeLocalDistrictsRequest>, OptimizeLocalDistrictsRequestValidator>();
-        
-        services.Configure<AvailableDirstricsOptions>(configuration.GetSection("AvailableDistricts"));
+        services.AddScoped<AlgorithmConfigurationBuilder>();
+        services.Configure<AvailableDistricsOptions>(configuration.GetSection("AvailableDistricts"));
         services.AddDistributedMemoryCache();
     }
 }

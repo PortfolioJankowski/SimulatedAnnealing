@@ -4,6 +4,7 @@ using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Algorithm;
+using SimulatedAnnealing.Server.Services.Configuration;
 using SimulatedAnnealing.Server.Services.Database;
 
 namespace SimulatedAnnealing.Server.Services.Behavioral;
@@ -16,8 +17,11 @@ public class SimulatedAnnealingService
     private readonly Geolocator _geolocator;
     private readonly IConfiguration _configuration;
     private const int RANDOM_COUNTIES_GENERATED_PER_ITERATION = 5;
+    private readonly AlgorithmConfigurationBuilder _algorithmConfigurationBuilder;
     
-    public SimulatedAnnealingService(ComplianceService complianceService, IDbRepository dbRepository, VoivodeshipStateBuilder stateBuilder, IConfiguration configuration)
+    public SimulatedAnnealingService(ComplianceService complianceService, IDbRepository dbRepository, 
+        VoivodeshipStateBuilder stateBuilder, IConfiguration configuration,
+        AlgorithmConfigurationBuilder algorithmConfigurationBuilder )
     {
         _complianceService = complianceService;
         _dbRepository = dbRepository;
@@ -25,19 +29,21 @@ public class SimulatedAnnealingService
         _random = new Random();
         _geolocator = new Geolocator();
         _configuration = configuration;
+        _algorithmConfigurationBuilder = algorithmConfigurationBuilder;
     }
     public async Task<object> Optimize(OptimizeLocalDistrictsRequest request)
     {
+        var algorithmConfiguration = _algorithmConfigurationBuilder.Build(request.DistrictInformation);
+
         var currentSolution = _stateBuilder
             .SetVoivodeship(request.DistrictInformation).Result
             .CalculateInhabitants()
             .CalculateVoievodianshipSeatsAmount()
             .CalculatePopulationIndex()
             .CalculateDistrictResults(request.DistrictInformation.PoliticalParty)
-            .CalculateScore(request)
+            .CalculateScore(request, algorithmConfiguration)
             .Build();
         var initialResult = GetInitialStateResults(currentSolution);    //for reaserch purpose
-        var algorithmConfiguration = request.AlgorithmConfiguration;
         var initialScore = currentSolution.Indicator!.Score;
         var bestSolution = currentSolution;
         var bestObjective = initialScore;
@@ -49,7 +55,7 @@ public class SimulatedAnnealingService
         for (int i = 0; i < algorithmConfiguration.MaxIterations; i++)
         {
             var randomStates = await GenerateRandomSolutions(currentSolution, algorithmConfiguration.StepSize, neighboursAmount, request.DistrictInformation.Year);
-            var bestRandomSolution = GetBestRandomSolution(randomStates, request);
+            var bestRandomSolution = GetBestRandomSolution(randomStates, request, algorithmConfiguration);
             bestRandomSolutionObjective = bestRandomSolution.Indicator!.Score;
 
             if (bestRandomSolutionObjective > currentObjective ||
@@ -131,7 +137,7 @@ public class SimulatedAnnealingService
 
         return seatsAmount;
     }
-    private VoivodeshipState GetBestRandomSolution(List<VoivodeshipState> randomStates, OptimizeLocalDistrictsRequest request)
+    private VoivodeshipState GetBestRandomSolution(List<VoivodeshipState> randomStates, OptimizeLocalDistrictsRequest request, AlgorithmConfiguration config)
     {
         var maxSeats = _configuration.GetSection("DistrictsSeats").GetValue<int>(request.DistrictInformation.VoivodeshipName);
         var max = _configuration.GetSection("DistrictsSeats");
@@ -140,7 +146,7 @@ public class SimulatedAnnealingService
             .ForEach(state => state.DistrictVotingResults = _complianceService.CalculateResultsForDistricts(state.ActualConfiguration, maxSeats, state.PopulationIndex, request.DistrictInformation.PoliticalParty));
 
         randomStates
-            .ForEach(state => state.Indicator = IndicatorService.SetNewIndicator(state, request));
+            .ForEach(state => state.Indicator = IndicatorService.SetNewIndicator(state, request, config));
 
         return randomStates.OrderByDescending(state => state.Indicator!.Score).First();
     }

@@ -5,13 +5,13 @@ namespace SimulatedAnnealing.Server.Services.Algorithm;
 
 public static class IndicatorService
 {
-    public static Indicator SetNewIndicator(VoivodeshipState state, OptimizeLocalDistrictsRequest request)
+    public static Indicator SetNewIndicator(VoivodeshipState state, OptimizeLocalDistrictsRequest request, AlgorithmConfiguration config)
     {
         var districtConfig = request.DistrictInformation;
         return new Indicator()
         {
             Seats = GetSeatsSum(state, districtConfig.PoliticalParty),
-            Score = GetSeatsSum(state, districtConfig.PoliticalParty) + GetGerrymanderingScore(state, request),
+            Score = GetSeatsSum(state, districtConfig.PoliticalParty) + GetGerrymanderingScore(state, request, config),
         };
     }
     private static int GetSeatsSum(VoivodeshipState state, string choosenParty)
@@ -22,16 +22,15 @@ public static class IndicatorService
             .Sum(mandaty => mandaty.Value);
     }
 
-    private static double GetGerrymanderingScore(VoivodeshipState state, OptimizeLocalDistrictsRequest request)
+    private static double GetGerrymanderingScore(VoivodeshipState state, OptimizeLocalDistrictsRequest request, AlgorithmConfiguration config)
     {
         double packingEffect = 0;
         double crackingEffect = 0;
-        var algorighmConfig = request.AlgorithmConfiguration;
 
-        double packingThreshold = algorighmConfig.PackingThreshold;
-        double crackingThreshold = algorighmConfig.CrackingThreshold;
-        double packingWeight = algorighmConfig.PackingWeight;
-        double crackingWeight = algorighmConfig.CrackingWeight;
+        double packingThreshold = config.PackingThreshold;
+        double crackingThreshold = config.CrackingThreshold;
+        double packingWeight = config.PackingWeight;
+        double crackingWeight = config.CrackingWeight;
 
         double totalVotesForChosenParty = 0; 
         double totalVotes = 0; 

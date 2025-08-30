@@ -5,7 +5,6 @@ namespace SimulatedAnnealing.Server.Models.Requests
     public class OptimizeLocalDistrictsRequest
     {
         public LocalResultsRequest DistrictInformation { get; set; }
-        public AlgorithmConfiguration AlgorithmConfiguration{ get; set; }
     }
 
     public class AlgorithmConfiguration

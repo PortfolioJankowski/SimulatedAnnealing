@@ -4,35 +4,30 @@ using Microsoft.AspNetCore.Mvc;
 using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Behavioral;
+using SimulatedAnnealing.Server.Services.Configuration;
 
 namespace SimulatedAnnealing.Server.Controllers;
 
 [ApiController]
 [Route("api/algorithm")]
 [Authorize]
-public class AlgorithmController : Controller
+public class AlgorithmController(
+    SimulatedAnnealingService simulatedAnnealingService, 
+    IValidator<OptimizeLocalDistrictsRequest> validator
+    ) : Controller
 {
-    private readonly ILogger<AlgorithmController> _logger;
-    private readonly SimulatedAnnealingService _simulatedAnnealingService;
-    private readonly IValidator<OptimizeLocalDistrictsRequest> _validator;
-    public AlgorithmController(ILogger<AlgorithmController> logger, SimulatedAnnealingService simulatedAnnealingService, IValidator<OptimizeLocalDistrictsRequest> validator)
-    {
-        _logger = logger;
-        _simulatedAnnealingService = simulatedAnnealingService;
-        _validator = validator;
-    }
 
     [HttpPost("optimize-local")]
     public async Task<ActionResult<VoivodeshipState>> GetOptimisedVoivodeship([FromBody] OptimizeLocalDistrictsRequest districtsRequest)
     {
-        var validationResult = _validator.Validate(districtsRequest);
+        var validationResult = validator.Validate(districtsRequest);
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
             return BadRequest(new { message = errors });
         }
         
-        var optimized = await _simulatedAnnealingService.Optimize(districtsRequest);
+        var optimized = await simulatedAnnealingService.Optimize(districtsRequest);
         return Ok(optimized);
     }
 

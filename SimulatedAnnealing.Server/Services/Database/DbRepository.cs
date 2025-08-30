@@ -13,12 +13,12 @@ namespace SimulatedAnnealing.Server.Services.Database;
 public class DbRepository : IDbRepository
 {
     private readonly PhdApiContext _context;
-    private readonly IOptions<AvailableDirstricsOptions> _availableDistricts;
+    private readonly IOptions<AvailableDistricsOptions> _availableDistricts;
     private readonly ILogger _logger;
     private readonly IDistributedCache _distributedCache;
 
     public DbRepository(PhdApiContext context, ILogger<DbRepository> logger,  
-                        IOptions<AvailableDirstricsOptions> availableDistricts, IDistributedCache distributedCache)
+                        IOptions<AvailableDistricsOptions> availableDistricts, IDistributedCache distributedCache)
     {
         _context = context;
         _logger = logger;

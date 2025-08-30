@@ -7,7 +7,7 @@ namespace SimulatedAnnealing.Server.Services.Validators;
 
 public class InitialStateRequestValidator : AbstractValidator<InitialStateRequest>
 {
-    public InitialStateRequestValidator(IOptions<AvailableDirstricsOptions> availableDistricts)
+    public InitialStateRequestValidator(IOptions<AvailableDistricsOptions> availableDistricts)
     {
         var districts = availableDistricts.Value.Districts;
 

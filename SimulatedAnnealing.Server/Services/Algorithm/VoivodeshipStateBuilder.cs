@@ -55,9 +55,9 @@ public class VoivodeshipStateBuilder
         return this;
     }
 
-    internal VoivodeshipStateBuilder CalculateScore(OptimizeLocalDistrictsRequest request)
+    internal VoivodeshipStateBuilder CalculateScore(OptimizeLocalDistrictsRequest request, AlgorithmConfiguration config)
     {
-        _voivodeshipState.Indicator = IndicatorService.SetNewIndicator(_voivodeshipState, request);
+        _voivodeshipState.Indicator = IndicatorService.SetNewIndicator(_voivodeshipState, request, config);
         return this;
     }
 }
