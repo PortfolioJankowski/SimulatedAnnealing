@@ -74,5 +74,45 @@ namespace SimulatedAnnealing.Tests.Integration
             // Assert
             Assert.Null(result);
         }
+        [Fact]
+        public void GetVoiewodeshipClone_ShouldReturnVoivodeship_WhenDataIsValid()
+        {
+            // Arrange
+            var wojewodztwa = new Wojewodztwa { Nazwa = "małopolskie", WojewodztwoId = 1 };
+            var data = new List<Wojewodztwa> { wojewodztwa }.AsQueryable();
+
+            var mockWojewodztwaSet = new Mock<DbSet<Wojewodztwa>>();
+            mockWojewodztwaSet.As<IQueryable<Wojewodztwa>>().Setup(m => m.Provider).Returns(data.Provider);
+            mockWojewodztwaSet.As<IQueryable<Wojewodztwa>>().Setup(m => m.Expression).Returns(data.Expression);
+            mockWojewodztwaSet.As<IQueryable<Wojewodztwa>>().Setup(m => m.ElementType).Returns(data.ElementType);
+            mockWojewodztwaSet.As<IQueryable<Wojewodztwa>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
+            _mockContext.Setup(c => c.Wojewodztwas).Returns(mockWojewodztwaSet.Object);
+
+            var powiaty = new List<Powiaty> { new Powiaty { PowiatId = 1, Nazwa = "Test Powiat" } }.AsQueryable();
+            var mockPowiatySet = new Mock<DbSet<Powiaty>>();
+            mockPowiatySet.As<IQueryable<Powiaty>>().Setup(m => m.Provider).Returns(powiaty.Provider);
+            mockPowiatySet.As<IQueryable<Powiaty>>().Setup(m => m.Expression).Returns(powiaty.Expression);
+            mockPowiatySet.As<IQueryable<Powiaty>>().Setup(m => m.ElementType).Returns(powiaty.ElementType);
+            mockPowiatySet.As<IQueryable<Powiaty>>().Setup(m => m.GetEnumerator()).Returns(powiaty.GetEnumerator());
+            _mockContext.Setup(c => c.Powiaties).Returns(mockPowiatySet.Object);
+
+            var sasiedzi = new List<Sasiedzi>().AsQueryable();
+            var mockSasiedziSet = new Mock<DbSet<Sasiedzi>>();
+            mockSasiedziSet.As<IQueryable<Sasiedzi>>().Setup(m => m.Provider).Returns(sasiedzi.Provider);
+            mockSasiedziSet.As<IQueryable<Sasiedzi>>().Setup(m => m.Expression).Returns(sasiedzi.Expression);
+            mockSasiedziSet.As<IQueryable<Sasiedzi>>().Setup(m => m.ElementType).Returns(sasiedzi.ElementType);
+            mockSasiedziSet.As<IQueryable<Sasiedzi>>().Setup(m => m.GetEnumerator()).Returns(sasiedzi.GetEnumerator());
+            _mockContext.Setup(c => c.Sasiedzis).Returns(mockSasiedziSet.Object);
+
+            var neighborConfig = new Dictionary<int, List<int>> { { 1, new List<int> { 1 } } };
+
+            // Act
+            var result = _repository.GetVoiewodeshipClone(neighborConfig);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Nazwa.Should().Be("małopolskie");
+            result.Okregis.Should().HaveCount(1);
+        }
     }
 }

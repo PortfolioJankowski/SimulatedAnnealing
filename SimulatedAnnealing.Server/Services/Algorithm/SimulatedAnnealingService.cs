@@ -34,6 +34,7 @@ public class SimulatedAnnealingService
     public async Task<object> Optimize(OptimizeLocalDistrictsRequest request)
     {
         var algorithmConfiguration = _algorithmConfigurationBuilder.Build(request.DistrictInformation);
+        algorithmConfiguration.MaxIterations = 100;
 
         var currentSolution = _stateBuilder
             .SetVoivodeship(request.DistrictInformation).Result
@@ -76,12 +77,10 @@ public class SimulatedAnnealingService
         var algorithmResults = GetAlgorithmResults(bestSolution);
         return new
         {
-            // newSolution = bestSolution,
             startScore = initialScore,
             initalResults = initialResult,
             optimizedResults = algorithmResults.Item1,
             newConfiguration = algorithmResults.Item2,
-            detailedResultsByDistrict = bestSolution.DistrictVotingResults,
             optimizedScore = bestSolution.Indicator.Score
         };
     }

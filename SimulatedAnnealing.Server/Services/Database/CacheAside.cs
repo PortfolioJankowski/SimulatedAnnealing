@@ -47,7 +47,12 @@ public static class CacheAside
             }
 
             var serialized = JsonConvert.SerializeObject(value, Formatting.None, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore});
-            await cache.SetStringAsync(key, serialized, options ?? Default, cancellationToken);
+            await cache.SetStringAsync(key, serialized, 
+                new DistributedCacheEntryOptions 
+                { 
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1), 
+                    SlidingExpiration = TimeSpan.FromMinutes(20)
+                }, cancellationToken);
         }
         finally
         {
