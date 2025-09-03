@@ -39,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValidator<InitialStateRequest>, InitialStateRequestValidator>();
         services.AddScoped<IValidator<LocalResultsRequest>, LocalResultsRequestValidator>();
         services.AddScoped<IValidator<OptimizeLocalDistrictsRequest>, OptimizeLocalDistrictsRequestValidator>();
+        services.AddScoped<IValidator<OptimizeParliamentSeatsRequest>, OptimizeParliamentRequestValidator>();
         services.AddScoped<AlgorithmConfigurationBuilder>();
         services.Configure<AvailableDistricsOptions>(configuration.GetSection("AvailableDistricts"));
         services.AddDistributedMemoryCache();
