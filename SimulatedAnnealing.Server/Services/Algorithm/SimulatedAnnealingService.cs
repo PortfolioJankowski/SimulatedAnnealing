@@ -1,15 +1,13 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
+﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.Configuration;
-using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Algorithm;
 using SimulatedAnnealing.Server.Services.Configuration;
 using SimulatedAnnealing.Server.Services.Database;
 
 namespace SimulatedAnnealing.Server.Services.Behavioral;
-public class SimulatedAnnealingService
+public partial class SimulatedAnnealingService
 {
     private readonly ComplianceService _complianceService;
     private readonly IDbRepository _dbRepository;
@@ -19,10 +17,10 @@ public class SimulatedAnnealingService
     private readonly IConfiguration _configuration;
     private const int RANDOM_COUNTIES_GENERATED_PER_ITERATION = 5;
     private readonly AlgorithmConfigurationBuilder _algorithmConfigurationBuilder;
-    
-    public SimulatedAnnealingService(ComplianceService complianceService, IDbRepository dbRepository, 
+
+    public SimulatedAnnealingService(ComplianceService complianceService, IDbRepository dbRepository,
         VoivodeshipStateBuilder stateBuilder, IConfiguration configuration,
-        AlgorithmConfigurationBuilder algorithmConfigurationBuilder )
+        AlgorithmConfigurationBuilder algorithmConfigurationBuilder)
     {
         _complianceService = complianceService;
         _dbRepository = dbRepository;
@@ -32,7 +30,14 @@ public class SimulatedAnnealingService
         _configuration = configuration;
         _algorithmConfigurationBuilder = algorithmConfigurationBuilder;
     }
-    public async Task<object> Optimize(OptimizeLocalDistrictsRequest request)
+
+    public async Task<LocalOptimizedResults> OptimizeParliamentDistrict(OptimizeLocalDistrictsRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public async Task<LocalOptimizedResults> OptimizeLocal(OptimizeLocalDistrictsRequest request)
     {
         var algorithmConfiguration = _algorithmConfigurationBuilder.Build(request.DistrictInformation);
         algorithmConfiguration.MaxIterations = 100;
@@ -76,16 +81,16 @@ public class SimulatedAnnealingService
         }
 
         var algorithmResults = GetAlgorithmResults(bestSolution);
-        return new
+        return new LocalOptimizedResults()
         {
-            startScore = initialScore,
-            initalResults = initialResult,
-            optimizedResults = algorithmResults.Item1,
-            newConfiguration = algorithmResults.Item2,
-            optimizedScore = bestSolution.Indicator.Score
+            StartScore = initialScore,
+            InitialResult = initialResult,
+            OptimizedResults = algorithmResults.Item1,
+            NewConfiguration = algorithmResults.Item2,
+            OptimizedScore = bestSolution.Indicator.Score,
+            VoivodeshipName = request.DistrictInformation.VoivodeshipName
         };
     }
-
     //returns comitees with number of votes and districts numbers with
     private static (Dictionary<string, int>, Dictionary<int, IEnumerable<string>>) GetAlgorithmResults(VoivodeshipState voivodeshipState)
     {
@@ -99,7 +104,7 @@ public class SimulatedAnnealingService
                 if (seatsAmount.ContainsKey(value.Key))
                 {
                     seatsAmount[value.Key] += value.Value;
-                } 
+                }
                 else
                 {
                     seatsAmount.Add(value.Key, value.Value);
@@ -112,7 +117,7 @@ public class SimulatedAnnealingService
         {
             generatedCounties.Add(district.DistrictId, district.Counties.Select(c => c.Name).ToList());
         }
-        return (seatsAmount,  generatedCounties);
+        return (seatsAmount, generatedCounties);
     }
 
     private static Dictionary<string, int> GetInitialStateResults(VoivodeshipState voivodeshipState)
@@ -175,7 +180,7 @@ public class SimulatedAnnealingService
 
     private static VoivodeshipState GetVoivodeshipStateClone(VoivodeshipState voivodeshipState, Voivodeship voivodeshipClone)
     {
-        return  new VoivodeshipState
+        return new VoivodeshipState
         {
             ActualConfiguration = voivodeshipClone,
             PopulationIndex = voivodeshipState.PopulationIndex,
@@ -203,7 +208,7 @@ public class SimulatedAnnealingService
             if (neighboringDistrict != null && Geolocator.IsCountyNeighbouringWithDistrict(randomCounty, neighboringDistrict))
             {
                 break;
-            } 
+            }
             else
             {
                 neighboringDistrict = null;

@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SimulatedAnnealing.Server.Models.Algorithm.Variable;
+using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Behavioral;
-using SimulatedAnnealing.Server.Services.Configuration;
 using SimulatedAnnealing.Server.Services.Database;
+using SimulatedAnnealing.Server.Services.Extensions;
 
 namespace SimulatedAnnealing.Server.Controllers;
 
@@ -14,7 +14,7 @@ namespace SimulatedAnnealing.Server.Controllers;
 [Route("api/algorithm")]
 [Authorize]
 public class AlgorithmController(
-    SimulatedAnnealingService simulatedAnnealingService, 
+    SimulatedAnnealingService simulatedAnnealingService,
     IValidator<OptimizeLocalDistrictsRequest> localValidator,
     IValidator<OptimizeParliamentSeatsRequest> parliamentValidator,
     PhdApiContext dbContext
@@ -22,7 +22,7 @@ public class AlgorithmController(
 {
 
     [HttpPost("optimize-local")]
-    public async Task<ActionResult<VoivodeshipState>> GetOptimisedVoivodeship(
+    public async Task<ActionResult<LocalOptimizedResults>> GetOptimisedVoivodeship(
         [FromBody] OptimizeLocalDistrictsRequest districtsRequest)
     {
         var validationResult = localValidator.Validate(districtsRequest);
@@ -31,13 +31,13 @@ public class AlgorithmController(
             var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
             return BadRequest(new { message = errors });
         }
-        
-        var optimized = await simulatedAnnealingService.Optimize(districtsRequest);
+
+        var optimized = await simulatedAnnealingService.OptimizeLocal(districtsRequest);
         return Ok(optimized);
     }
 
     [HttpPost("optimize-parliament")]
-    public async Task<ActionResult<object>> GetOptimizedParliamentDistricts(
+    public async Task<ActionResult<List<LocalOptimizedResults>>> GetOptimizedParliamentDistricts(
         [FromBody] OptimizeParliamentSeatsRequest parliamentRequest)
     {
         var validationResult = parliamentValidator.Validate(parliamentRequest);
@@ -53,13 +53,29 @@ public class AlgorithmController(
                     .ThenInclude(c => c.CountyPopulations)
              .Include(v => v.ParliamentDistricts)
                 .ThenInclude(d => d.TerytCounties)
-                    .ThenInclude(c => c.ParliamentVotingResults)       
+                    .ThenInclude(c => c.ParliamentVotingResults)
             .Include(v => v.ParliamentDistricts)
                 .ThenInclude(d => d.TerytCounties)
-                    .ThenInclude(c => c.TerytNeighborCountyTerytNavigations) 
+                    .ThenInclude(c => c.TerytNeighborCountyTerytNavigations)
             .ToList();
 
-        return Ok(new { Id = 1 });
+        List<LocalOptimizedResults> optimizedResults = new();
+        foreach (var v in vvs)
+        {
+            var request = new OptimizeLocalDistrictsRequest()
+            {
+                DistrictInformation = new LocalResultsRequest()
+                {
+                    PoliticalParty = parliamentRequest.comittee.GetDescription(),
+                    VoivodeshipName = v.Name,
+                    Year = parliamentRequest.year,
+                }
+            };
+
+            optimizedResults.Add(await simulatedAnnealingService.OptimizeLocal(request));
+        }
+
+        return Ok(optimizedResults);
     }
 
     [HttpGet("test")]

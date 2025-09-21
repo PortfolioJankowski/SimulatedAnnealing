@@ -1,10 +1,5 @@
 ﻿using SimulatedAnnealing.Models;
 using SimulatedAnnealing.Services.Config;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SimulatedAnnealing.Services.Legal
 {
@@ -25,10 +20,10 @@ namespace SimulatedAnnealing.Services.Legal
                 };
                 districtsSeats = AdjustSeats(adjustDTO);
             }
-            foreach (int seats in districtsSeats) 
-            { 
-                if (seats < 5 || seats > 15) 
-                { 
+            foreach (int seats in districtsSeats)
+            {
+                if (seats < 5 || seats > 15)
+                {
                     return false;
                 }
             }
@@ -36,7 +31,7 @@ namespace SimulatedAnnealing.Services.Legal
             return true;
         }
 
-        internal Dictionary<Okregi, Dictionary<string,int>> CalculateResultsForDistricts(Wojewodztwa actualConfiguration, int maxSeats, double populationIndex)
+        internal Dictionary<Okregi, Dictionary<string, int>> CalculateResultsForDistricts(Wojewodztwa actualConfiguration, int maxSeats, double populationIndex)
         {
             int[] districtsSeats = CalculateDistrictsSeats(actualConfiguration.Okregis, populationIndex);
             int totalCountedSeats = districtsSeats.Sum();
@@ -128,7 +123,7 @@ namespace SimulatedAnnealing.Services.Legal
         {
             double[] populationIndexes = GetDistrictsPopulationIndexes(data.districts, data.actualDistribution);
             double minIndex = double.MaxValue;
-            double maxIndex = double.MinValue;  
+            double maxIndex = double.MinValue;
 
             while (data.countedSeats != data.maxSeats)
             {
@@ -143,8 +138,9 @@ namespace SimulatedAnnealing.Services.Legal
                     int position = populationIndexes.ToList().IndexOf(populationIndexes.Min());
                     data.actualDistribution[position] = data.actualDistribution[position] - 1;
                     data.countedSeats--;
-                    
-                } else
+
+                }
+                else
                 {
                     int position = populationIndexes.ToList().IndexOf(populationIndexes.Max());
                     data.actualDistribution[position] = data.actualDistribution[position] + 1;
@@ -169,12 +165,12 @@ namespace SimulatedAnnealing.Services.Legal
                 }
                 else
                 {
-                    output.Add((double)(districtInhibtiants /1));
+                    output.Add((double)(districtInhibtiants / 1));
                 }
                 i++;
-                
+
             }
-           return output.ToArray();
+            return output.ToArray();
         }
 
         public int[] CalculateDistrictsSeats(ICollection<Okregi> okregis, double populationIndex)
@@ -192,23 +188,24 @@ namespace SimulatedAnnealing.Services.Legal
         internal int CalculateSeatsAmountForVoievodianship(long inhabitants)
         {
             int seatsAmount;
-            if (inhabitants > 2000000) 
+            if (inhabitants > 2000000)
             {
-                double temp = System.Math.Ceiling((double)(inhabitants - 2000000)/500000);
+                double temp = System.Math.Ceiling((double)(inhabitants - 2000000) / 500000);
                 return 30 + (int)(temp * 3);
-                
-            } else
+
+            }
+            else
             {
                 return 30;
             }
         }
 
-       
+
     }
     public class AdjustDTO
     {
         public int[] actualDistribution { get; set; }
-        public int countedSeats { get; set; }   
+        public int countedSeats { get; set; }
         public int maxSeats { get; set; }
         public ICollection<Okregi> districts { get; set; }
     }

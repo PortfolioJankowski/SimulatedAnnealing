@@ -18,7 +18,7 @@ public class InitialStateRequestValidator : AbstractValidator<InitialStateReques
 
 
         RuleFor(x => x.Year)
-           .Must((request, year) => 
+           .Must((request, year) =>
             districts.TryGetValue(request.VoivodeshipName.ToLower(), out var validYears) && validYears.Keys.Contains(year.ToString()))
            .WithMessage("The selected year is not available for this Voivodeship.");
     }

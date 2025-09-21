@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 
 namespace SimulatedAnnealing.Services.Config
 {
@@ -16,8 +11,8 @@ namespace SimulatedAnnealing.Services.Config
             try
             {
                 Config = new ConfigurationBuilder()
-                   
-                    .SetBasePath (Directory.GetCurrentDirectory())
+
+                    .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                     .Build();
             }
@@ -50,6 +45,6 @@ namespace SimulatedAnnealing.Services.Config
         public const int ElectoralYear = 2024;
 
 
-           
+
     }
 }

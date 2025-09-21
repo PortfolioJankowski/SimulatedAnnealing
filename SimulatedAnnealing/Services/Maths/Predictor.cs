@@ -1,11 +1,5 @@
 ﻿using SimulatedAnnealing.Models;
 using SimulatedAnnealing.Services.Config;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace SimulatedAnnealing.Services.Math
 {
@@ -44,14 +38,14 @@ namespace SimulatedAnnealing.Services.Math
             double totalVotes = 0; // Suma głosów we wszystkich okręgach 
 
             foreach (var district in state.ActualConfiguration!.Okregis)
-            {         
+            {
                 foreach (var county in district.Powiaties)
                 {
                     var countyResults = county.Wynikis.Where(w => w.Rok == 2024).ToList();
 
                     if (countyResults.Any())
                     {
-                        int countyVotes = countyResults.Sum(r=> r.LiczbaGlosow ?? 0) ; // Liczba głosów w powiecie
+                        int countyVotes = countyResults.Sum(r => r.LiczbaGlosow ?? 0); // Liczba głosów w powiecie
                         var choosenPartyResult = countyResults.Where(r => r.Komitet == Configuration.ChoosenPoliticalGroup).FirstOrDefault();
                         if (choosenPartyResult != null)
                         {

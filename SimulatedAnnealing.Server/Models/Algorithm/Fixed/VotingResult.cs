@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed;
+﻿namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
 public partial class VotingResult
 {

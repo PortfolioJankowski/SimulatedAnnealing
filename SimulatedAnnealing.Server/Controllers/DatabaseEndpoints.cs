@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Services.Database;
-using FluentValidation;
 
 namespace SimulatedAnnealing.Server.Controllers;
 
@@ -9,7 +9,7 @@ public static class DatabaseEndpoints
 {
     public static void MapDatabaseEndpoints(this IEndpointRouteBuilder app) //Extension to execute in Program.cs
     {
-                                                    //Delegate
+        //Delegate
         app.MapPost("api/Database/GetLocalResults", GetLocalResults).RequireAuthorization();
         app.MapPost("api/Database/GetInitialState", GetInitialState).RequireAuthorization();
     }

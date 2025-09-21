@@ -1,12 +1,4 @@
-﻿using SimulatedAnnealing.Models;
-using SimulatedAnnealing.Services.Config;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SimulatedAnnealing.Services.Painter
+﻿namespace SimulatedAnnealing.Services.Painter
 {
     public static class Paint
     {
@@ -15,8 +7,8 @@ namespace SimulatedAnnealing.Services.Painter
             Console.WriteLine("******** GERRYMANDERRING STARTING.. **********");
         }
 
-       
-            
+
+
 
 
 

@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 using SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
 using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.Authentication;
-using System;
-using System.Collections.Generic;
 using System.Data;
 
 namespace SimulatedAnnealing.Server.Services.Database;
@@ -34,7 +31,7 @@ public partial class PhdApiContext : IdentityDbContext<AppUser>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-    
+
         base.OnModelCreating(modelBuilder);
         var roles = RoleOptions.RoleNames
             .Keys
@@ -43,7 +40,7 @@ public partial class PhdApiContext : IdentityDbContext<AppUser>
                 Name = key.ToString(),
                 NormalizedName = RoleOptions.RoleNames[key]
             });
-        
+
         modelBuilder.Entity<IdentityRole>().HasData(roles);
 
         modelBuilder.Entity<County>(entity =>

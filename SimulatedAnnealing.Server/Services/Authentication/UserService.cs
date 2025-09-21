@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Server.Models.Authentication;
 using SimulatedAnnealing.Server.Models.Authentication.Dto;
 using SimulatedAnnealing.Server.Models.Authentication.Exceptions;
-using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace SimulatedAnnealing.Server.Services.Authentication
 {
@@ -56,7 +54,7 @@ namespace SimulatedAnnealing.Server.Services.Authentication
             if (!result.Succeeded)
                 return (null, new UnauthorizedAccessException("Invalid password!"));
 
-            var userDto  = new NewUserDto
+            var userDto = new NewUserDto
             {
                 UserName = appUser.UserName,
                 Email = appUser.Email,

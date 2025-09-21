@@ -17,7 +17,7 @@ public class DbRepository : IDbRepository
     private readonly ILogger _logger;
     private readonly IDistributedCache _distributedCache;
 
-    public DbRepository(PhdApiContext context, ILogger<DbRepository> logger,  
+    public DbRepository(PhdApiContext context, ILogger<DbRepository> logger,
                         IOptions<AvailableDistricsOptions> availableDistricts, IDistributedCache distributedCache)
     {
         _context = context;
@@ -33,7 +33,7 @@ public class DbRepository : IDbRepository
         return await _distributedCache.GetOrCreateAsync(key, async token =>
         {
             return await GetVoivodeshipFromDatabaseAsync(request);
-        });  
+        });
     }
     public async Task<GerrymanderingResult?> GetGerrymanderringResultsAsync(LocalResultsRequest request)
     {
@@ -72,18 +72,18 @@ public class DbRepository : IDbRepository
                     $"{request.PoliticalParty} in {request.Year} located in {request.VoivodeshipName}");
 
             return results;
-        } 
+        }
         catch (GerrymanderringResultsNotFoundException e)
         {
             throw;
-        } 
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error occurred while fetching gerrymandering results for " +
                 $"{request.VoivodeshipName} in {request.Year} located in {request.VoivodeshipName}");
             throw;
         }
-        
+
     }
 
     private async Task<Voivodeship?> GetVoivodeshipFromDatabaseAsync(InitialStateRequest request)
@@ -114,7 +114,7 @@ public class DbRepository : IDbRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error occurred while fetching voivodeship '{VoivodeshipName}' for year {Year}.", request.VoivodeshipName, request.Year);
-            throw; 
+            throw;
         }
     }
 
@@ -150,6 +150,6 @@ public class DbRepository : IDbRepository
         return bestParties;
     }
 
-    
+
 
 }

@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
-using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
-using SimulatedAnnealing.Server.Models.Exceptions;
+﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
 namespace SimulatedAnnealing.Server.Services.Algorithm;
-public  class Geolocator
+public class Geolocator
 {
     public static bool IsCountyNeighbouringWithDistrict(County randomCounty, District district)
     {

@@ -1,14 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.Json;
-using SimulatedAnnealing.Models;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SimulatedAnnealing.Models;
 
 namespace SimulatedAnnealing.Services.Geography
 {
@@ -55,7 +45,7 @@ namespace SimulatedAnnealing.Services.Geography
             queue.Enqueue(startCounty);
             visited.Add(startCounty.PowiatId);
 
-            while (queue.Count > 0) 
+            while (queue.Count > 0)
             {
                 var currentCounty = queue.Dequeue();
 

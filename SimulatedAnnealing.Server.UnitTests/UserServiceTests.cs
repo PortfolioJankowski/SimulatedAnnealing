@@ -1,15 +1,10 @@
-﻿using Moq;
-using Xunit;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Http;
-using SimulatedAnnealing.Server.Models.Authentication.Dto;
-using SimulatedAnnealing.Server.Models.Authentication;
-using SimulatedAnnealing.Server.Services.Authentication;
-using Microsoft.EntityFrameworkCore;
-using NSubstitute.ReturnsExtensions;
 using MockQueryable;
-using NSubstitute;
+using Moq;
+using SimulatedAnnealing.Server.Models.Authentication;
+using SimulatedAnnealing.Server.Models.Authentication.Dto;
+using SimulatedAnnealing.Server.Services.Authentication;
 
 namespace SimulatedAnnealing.Server.UnitTests;
 
@@ -25,14 +20,14 @@ public class UserServiceTests
         var userStoreMock = new Mock<IUserStore<AppUser>>();
         _userManagerMock = new Mock<UserManager<AppUser>>(userStoreMock.Object, null, null, null, null, null, null, null, null);
         _signInManagerMock = new Mock<SignInManager<AppUser>>(
-            _userManagerMock.Object, new Mock<IHttpContextAccessor>().Object, 
-            new Mock<IUserClaimsPrincipalFactory<AppUser>>().Object, 
+            _userManagerMock.Object, new Mock<IHttpContextAccessor>().Object,
+            new Mock<IUserClaimsPrincipalFactory<AppUser>>().Object,
             null, null, null, null);
         _tokenServiceMock = new Mock<ITokenService>();
         _sut = new UserService(_userManagerMock.Object, _signInManagerMock.Object, _tokenServiceMock.Object);
     }
 
-    [Fact] 
+    [Fact]
     public async Task TryRegisterAsync_ShouldReturnNewUserDto_WhenProvidedCredentialsAreValid()
     {
         // Arrange
@@ -62,9 +57,9 @@ public class UserServiceTests
     }
 
     [Theory]
-    [InlineData("","", "password")]
-    [InlineData("sample@email.com","Login", "")]
-    [InlineData("sample@email.com","Login12", "weakpassword")]
+    [InlineData("", "", "password")]
+    [InlineData("sample@email.com", "Login", "")]
+    [InlineData("sample@email.com", "Login12", "weakpassword")]
     public async Task TryRegisterAsync_ShouldReturnException_WhenProvidedCredentialsAreNotValid(string email, string login, string password)
     {
         // Arrange
@@ -76,7 +71,7 @@ public class UserServiceTests
         };
         var appUser = new AppUser { UserName = registerDTO.Username, Email = registerDTO.Email };
         var identityResult = IdentityResult.Failed();
-        
+
         _userManagerMock.Setup(um => um.CreateAsync(It.IsAny<AppUser>(), It.IsAny<string>())).ReturnsAsync(identityResult);
         _userManagerMock.Setup(um => um.AddToRoleAsync(It.IsAny<AppUser>(), "User")).ReturnsAsync(identityResult);
 
@@ -100,13 +95,13 @@ public class UserServiceTests
 
         var emptyUsersQueryable = new List<AppUser>().AsQueryable().BuildMock<AppUser>();
         _userManagerMock.Setup(um => um.Users).Returns(emptyUsersQueryable);
-        
+
         // Act
         var (user, exception) = await _sut.TryLoginUserAsync(loginDto);
-       
+
         // Assert
         Assert.Null(user);
-        Assert.NotNull(exception);   
+        Assert.NotNull(exception);
     }
 
     [Fact]
@@ -125,7 +120,7 @@ public class UserServiceTests
         } }
             .AsQueryable()
             .BuildMock(); //Because AsQueryable does not implement async interace
-        
+
         _userManagerMock.Setup(sm => sm.Users).Returns(users);
         _signInManagerMock.Setup(sim => sim.CheckPasswordSignInAsync(It.IsAny<AppUser>(), loginDto.Password, false)).ReturnsAsync(SignInResult.Success); //Returns Task<SigninResult> so ReturnsASYNC!
         _tokenServiceMock.Setup(ts => ts.CreateToken(It.IsAny<AppUser>())).Returns("test_token"); //It.IsAny<AppUser> - placeholder, doesnt require particular instance of a AppUser

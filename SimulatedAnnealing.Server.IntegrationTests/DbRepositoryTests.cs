@@ -1,11 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using SimulatedAnnealing.Server.Models.DTOs;
-using SimulatedAnnealing.Server.Services.Database;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SimulatedAnnealing.Server.Models.DTOs;
 
 namespace SimulatedAnnealing.Server.IntegrationTests;
 public class DbRepositoryTests : BaseIntegrationTest
@@ -26,6 +19,6 @@ public class DbRepositoryTests : BaseIntegrationTest
         var result = await _dbRepository.GetVoivodeshipAsync(request);
         Assert.NotNull(result);
 
-    } 
+    }
 }
 

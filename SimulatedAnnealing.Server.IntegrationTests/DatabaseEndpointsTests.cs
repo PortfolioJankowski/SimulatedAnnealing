@@ -1,15 +1,8 @@
-﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
+﻿using Microsoft.Extensions.DependencyInjection;
 using SimulatedAnnealing.Server.Models.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using SimulatedAnnealing.Server.Services.Authentication;
-using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.DependencyInjection;
+using System.Net;
+using System.Net.Http.Json;
 
 namespace SimulatedAnnealing.Server.IntegrationTests;
 
@@ -29,7 +22,7 @@ public class DatabaseEndpointsTests : IClassFixture<DatabaseEndpointFactory>
             Year = 2024
         };
 
-        if(string.IsNullOrEmpty(_token))
+        if (string.IsNullOrEmpty(_token))
         {
             _token = GetJwtTokenForTestUser().Result;
         }
@@ -38,7 +31,7 @@ public class DatabaseEndpointsTests : IClassFixture<DatabaseEndpointFactory>
 
     [Fact]
     public async Task GetInitialState_ReturnsExpectedVoivodeship_WhenDataExists()
-    { 
+    {
         // Act
         var response = await _client.PostAsJsonAsync("api/Database/GetInitialState", _configurationRequestBody);
         var result = await response.Content.ReadAsStringAsync();

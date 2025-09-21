@@ -28,9 +28,9 @@ public partial class Voivodeship
                     Inahabitants = c.Inahabitants,
                     NeighboringCounties = c.NeighboringCounties?.Select(nc => new County
                     {
-                        CountyId = nc.CountyId, 
-                        Name = nc.Name  
-                    }).ToList() ?? new List<County>(), 
+                        CountyId = nc.CountyId,
+                        Name = nc.Name
+                    }).ToList() ?? new List<County>(),
 
                     VotingResults = c.VotingResults?.Select(vr => new VotingResult
                     {
@@ -39,11 +39,11 @@ public partial class Voivodeship
                         Committee = vr.Committee,
                         NumberVotes = vr.NumberVotes,
                         Year = vr.Year
-                    }).ToList() ?? new List<VotingResult>() 
+                    }).ToList() ?? new List<VotingResult>()
 
-                }).ToList() 
+                }).ToList()
 
-            }).ToList() 
+            }).ToList()
 
         };
     }

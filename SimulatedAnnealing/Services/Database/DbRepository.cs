@@ -3,11 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SimulatedAnnealing.Models;
 using SimulatedAnnealing.Services.Config;
-using System;
-using System.Collections.Generic;
-
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SimulatedAnnealing.Services.Database
 {
@@ -26,7 +21,8 @@ namespace SimulatedAnnealing.Services.Database
             };
 
             // Startpoint => actual electoral situation
-            try {
+            try
+            {
                 SimulatedAnnealing.Models.Wojewodztwa? ww = _context.Wojewodztwas
                     .Where(w => w.Nazwa == Configuration.ChoosenVoievodenship)
                     .Include(w => w.Okregis)
@@ -38,23 +34,28 @@ namespace SimulatedAnnealing.Services.Database
                                 .Where(w => w.Rok == 2024 && bestParties.Contains(w.Komitet!)))
                     .FirstOrDefault();
 
-                    if (ww == null){
-                        throw new Exception($"No voivodeship founc for {Configuration.ChoosenVoievodenship}");
-                    }
-                    foreach (var okr in ww.Okregis){
-                        foreach( var powiat in okr.Powiaties){
-                            var sasiedzi = _context.Sasiedzis
-                                .Where(s => s.PowiatId == powiat.PowiatId)
-                                .Select(s => s.SasiadId)
-                                .ToList();
+                if (ww == null)
+                {
+                    throw new Exception($"No voivodeship founc for {Configuration.ChoosenVoievodenship}");
+                }
+                foreach (var okr in ww.Okregis)
+                {
+                    foreach (var powiat in okr.Powiaties)
+                    {
+                        var sasiedzi = _context.Sasiedzis
+                            .Where(s => s.PowiatId == powiat.PowiatId)
+                            .Select(s => s.SasiadId)
+                            .ToList();
 
-                            powiat.PowiatySasiadujace = _context.Powiaties
-                                .Where(p => sasiedzi.Contains(p.PowiatId))
-                                .ToList();
-                        }
+                        powiat.PowiatySasiadujace = _context.Powiaties
+                            .Where(p => sasiedzi.Contains(p.PowiatId))
+                            .ToList();
                     }
-                    return ww!;
-            } catch(Exception ex) {
+                }
+                return ww!;
+            }
+            catch (Exception ex)
+            {
                 throw new Exception($"An error occuren while fetching the voivodeship data, {ex.Message} ");
             }
         }
@@ -81,11 +82,11 @@ namespace SimulatedAnnealing.Services.Database
             var powiaty = _context.Powiaties
                 .Include(p => p.Wynikis
                     .Where(w => w.Rok == Configuration.ElectoralYear && bestParties.Contains(w.Komitet!)))
-                .ToList(); 
+                .ToList();
 
             var sasiedziDict = _context.Sasiedzis
                 .GroupBy(s => s.PowiatId ?? 0)
-                .ToDictionary(g => g.Key, g => g.Select(s=> s.SasiadId).ToList());
+                .ToDictionary(g => g.Key, g => g.Select(s => s.SasiadId).ToList());
 
             foreach (var kvp in neighborConfigurationSettings)
             {
@@ -152,17 +153,17 @@ namespace SimulatedAnnealing.Services.Database
                         OkregId = res.Key.OkregId,
                         Wyniki = res.Value.Select(votingResult => new
                         {
-                            Party = votingResult.Key, 
-                            Votes = votingResult.Value 
-                        }).ToList() 
-                    }).ToList() 
+                            Party = votingResult.Key,
+                            Votes = votingResult.Value
+                        }).ToList()
+                    }).ToList()
                 };
                 // Serialize to JSON
                 string configurationJson = JsonConvert.SerializeObject(configuration, Formatting.Indented);
                 string resultsJson = JsonConvert.SerializeObject(results, Formatting.Indented);
                 var stateEntity = new GerrymanderingResult
                 {
-                    
+
                     ChoosenParty = Configuration.ChoosenPoliticalGroup,
                     CreatedAt = DateTime.Now,
                     ElectoralYear = Configuration.ElectoralYear,
@@ -180,10 +181,10 @@ namespace SimulatedAnnealing.Services.Database
                     Voivodeship = Configuration.ChoosenVoievodenship,
                     Configuration = configurationJson,
                     Results = resultsJson
-                }; 
+                };
                 _context.ChangeTracker.Clear();
                 _context.GerrymanderingResults.Add(stateEntity);
-                 _context.SaveChanges();
+                _context.SaveChanges();
             }
             catch (Exception ex)
             {

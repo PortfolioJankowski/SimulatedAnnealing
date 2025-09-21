@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace SimulatedAnnealing.Models;
+﻿namespace SimulatedAnnealing.Models;
 
 public partial class Sasiedzi
 {

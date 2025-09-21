@@ -8,7 +8,7 @@ namespace SimulatedAnnealing.Server.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly IUserService _userService;
-    
+
     public AccountController(IUserService userService)
     {
         _userService = userService;
@@ -20,11 +20,11 @@ public class AccountController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-       var (user, exception) = await _userService.TryLoginUserAsync(loginDto);
-       if (exception != null)
+        var (user, exception) = await _userService.TryLoginUserAsync(loginDto);
+        if (exception != null)
             return Unauthorized(exception.Message);
 
-        return Ok(user); 
+        return Ok(user);
     }
 
     [HttpPost("register")]
@@ -37,7 +37,7 @@ public class AccountController : ControllerBase
         if (exception != null)
             return BadRequest(exception.Message);
 
-        return Ok(newUser);   
-    }    
+        return Ok(newUser);
+    }
 }
 

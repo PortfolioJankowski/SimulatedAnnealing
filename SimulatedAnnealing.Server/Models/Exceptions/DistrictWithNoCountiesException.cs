@@ -4,6 +4,6 @@
     {
         public DistrictWithNoCountiesException() : base() { }
         public DistrictWithNoCountiesException(string message) : base(message) { }
-        public DistrictWithNoCountiesException(string message,  Exception innerException) : base(message, innerException) { }
+        public DistrictWithNoCountiesException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

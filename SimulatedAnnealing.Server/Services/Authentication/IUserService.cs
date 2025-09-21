@@ -1,5 +1,4 @@
-﻿using SimulatedAnnealing.Server.Models.Authentication;
-using SimulatedAnnealing.Server.Models.Authentication.Dto;
+﻿using SimulatedAnnealing.Server.Models.Authentication.Dto;
 
 namespace SimulatedAnnealing.Server.Services.Authentication;
 

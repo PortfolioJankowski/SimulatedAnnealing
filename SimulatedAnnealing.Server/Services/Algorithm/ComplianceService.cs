@@ -1,5 +1,4 @@
 ﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
-using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 
 namespace SimulatedAnnealing.Server.Services.Behavioral;
 public class ComplianceService
@@ -34,7 +33,7 @@ public class ComplianceService
         return districtSeats.All(seats => seats is >= 5 and <= 15);
     }
 
-    internal Dictionary<District, Dictionary<string, int>> CalculateResultsForDistricts(Voivodeship configuration, int maxSeats, double populationIndex,string choosenParty)
+    internal Dictionary<District, Dictionary<string, int>> CalculateResultsForDistricts(Voivodeship configuration, int maxSeats, double populationIndex, string choosenParty)
     {
         var districtSeats = CalculateDistrictSeats(configuration.Districts, populationIndex);
         int totalSeats = districtSeats.Sum();

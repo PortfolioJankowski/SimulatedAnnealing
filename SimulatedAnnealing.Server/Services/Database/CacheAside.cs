@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
 public static class CacheAside
 {
@@ -18,7 +16,7 @@ public static class CacheAside
         CancellationToken cancellationToken = default)
     {
         var cachedValue = await cache.GetStringAsync(key, cancellationToken);
-        
+
         T? value;
         if (!string.IsNullOrEmpty(cachedValue))
         {
@@ -46,11 +44,11 @@ public static class CacheAside
                 return default;
             }
 
-            var serialized = JsonConvert.SerializeObject(value, Formatting.None, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore});
-            await cache.SetStringAsync(key, serialized, 
-                new DistributedCacheEntryOptions 
-                { 
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1), 
+            var serialized = JsonConvert.SerializeObject(value, Formatting.None, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            await cache.SetStringAsync(key, serialized,
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
                     SlidingExpiration = TimeSpan.FromMinutes(20)
                 }, cancellationToken);
         }
@@ -58,7 +56,7 @@ public static class CacheAside
         {
             Semaphore.Release();
         }
-       
+
         return value;
     }
 }

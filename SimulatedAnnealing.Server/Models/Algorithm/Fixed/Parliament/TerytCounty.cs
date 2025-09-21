@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
+﻿namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
 
 public partial class TerytCounty
 {

@@ -11,7 +11,7 @@ public class VoivodeshipStateBuilder
     private readonly VoivodeshipState _voivodeshipState = new();
     private readonly ComplianceService _complianceService;
     private readonly IDbRepository _dbRepository;
-  
+
     public VoivodeshipStateBuilder(ComplianceService complianceService, IDbRepository dbRepository)
     {
         _complianceService = complianceService;

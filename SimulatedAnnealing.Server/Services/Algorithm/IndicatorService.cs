@@ -33,8 +33,8 @@ public static class IndicatorService
         double packingWeight = config.PackingWeight;
         double crackingWeight = config.CrackingWeight;
 
-        double totalVotesForChosenParty = 0; 
-        double totalVotes = 0; 
+        double totalVotesForChosenParty = 0;
+        double totalVotes = 0;
 
         foreach (var district in state.ActualConfiguration!.Districts)
         {
@@ -45,7 +45,7 @@ public static class IndicatorService
                 if (countyResults.Any())
                 {
                     int countyVotes = countyResults.Sum(r => r.NumberVotes ?? 0); // Liczba głosów w powiecie
-                    var choosenPartyResult = countyResults.Where(r => r.Committee== request.DistrictInformation.PoliticalParty).FirstOrDefault();
+                    var choosenPartyResult = countyResults.Where(r => r.Committee == request.DistrictInformation.PoliticalParty).FirstOrDefault();
                     if (choosenPartyResult != null)
                     {
                         totalVotesForChosenParty += choosenPartyResult.NumberVotes ?? 0;

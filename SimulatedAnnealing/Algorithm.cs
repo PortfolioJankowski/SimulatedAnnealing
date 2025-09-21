@@ -4,8 +4,6 @@ using SimulatedAnnealing.Services.Database;
 using SimulatedAnnealing.Services.Geography;
 using SimulatedAnnealing.Services.Legal;
 using SimulatedAnnealing.Services.Math;
-using System.Diagnostics;
-using System.Numerics;
 
 public class Algorithm
 {
@@ -29,16 +27,19 @@ public class Algorithm
         return state.Indicator!.Score;
     }
 
-    public Dictionary<int, List<int>> GetCurrentStateConfiguration(ICollection<Okregi> okregis){
+    public Dictionary<int, List<int>> GetCurrentStateConfiguration(ICollection<Okregi> okregis)
+    {
         Dictionary<int, List<int>> output = new();
-            foreach (var okr in okregis){
-                List<int> countiesNumbers = okr.Powiaties.Select(p => p.PowiatId).ToList();
-                output.Add(okr.OkregId, countiesNumbers);
+        foreach (var okr in okregis)
+        {
+            List<int> countiesNumbers = okr.Powiaties.Select(p => p.PowiatId).ToList();
+            output.Add(okr.OkregId, countiesNumbers);
         }
         return output;
     }
 
-    public State CloneState(State currentState){
+    public State CloneState(State currentState)
+    {
         State neighborState = new State();
         Dictionary<int, List<int>> neighborConfigurationSettings = GetCurrentStateConfiguration(currentState.ActualConfiguration!.Okregis);
         neighborState.ActualConfiguration = _dbRepository.GetVoiewodeshipClone(neighborConfigurationSettings);
@@ -55,10 +56,10 @@ public class Algorithm
         var neighborState = CloneState(currentState);
         var random = new Random();
         neighborState.ActualConfiguration = MoveCounty(neighborState.ActualConfiguration!, random, neighborState.PopulationIndex);
-      
+
         if (!_codex.AreLegalRequirementsMet(neighborState.ActualConfiguration, neighborState.PopulationIndex))
         {
-            return currentState; 
+            return currentState;
         }
         return neighborState;
     }
@@ -166,7 +167,7 @@ public class Algorithm
         if (state == null || county == null || currentDistrict == null) throw new ArgumentNullException();
         var newDistrict = SelectDifferentRandomDistrict(state, currentDistrict, random);
         if (newDistrict == null) return state;
-        
+
         // Check if moving the county would leave the current district empty
         if (CanMoveCounty(state, county, currentDistrict, newDistrict))
         {
@@ -268,7 +269,7 @@ public class Algorithm
                 currentObjective = neighborObjective;
                 if (currentObjective > bestObjective)
                 {
-                    
+
                     bestSolution = currentSolution;
                     bestObjective = currentObjective;
                 }
