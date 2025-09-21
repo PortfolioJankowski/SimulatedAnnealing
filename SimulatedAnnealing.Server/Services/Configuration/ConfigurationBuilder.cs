@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Renci.SshNet.Security;
+using SimulatedAnnealing.Server.Models.Configuration;
 using SimulatedAnnealing.Server.Models.DTOs;
-using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Database;
 using System.Diagnostics;
 using System.Drawing;

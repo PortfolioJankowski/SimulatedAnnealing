@@ -1,4 +1,5 @@
 ﻿using SimulatedAnnealing.Server.Models.Algorithm.Variable;
+using SimulatedAnnealing.Server.Models.Configuration;
 using SimulatedAnnealing.Server.Models.Requests;
 
 namespace SimulatedAnnealing.Server.Services.Algorithm;
