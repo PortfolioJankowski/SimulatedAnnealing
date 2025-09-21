@@ -1,10 +1,12 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Behavioral;
 using SimulatedAnnealing.Server.Services.Configuration;
+using SimulatedAnnealing.Server.Services.Database;
 
 namespace SimulatedAnnealing.Server.Controllers;
 
@@ -14,7 +16,8 @@ namespace SimulatedAnnealing.Server.Controllers;
 public class AlgorithmController(
     SimulatedAnnealingService simulatedAnnealingService, 
     IValidator<OptimizeLocalDistrictsRequest> localValidator,
-    IValidator<OptimizeParliamentSeatsRequest> parliamentValidator
+    IValidator<OptimizeParliamentSeatsRequest> parliamentValidator,
+    PhdApiContext dbContext
     ) : Controller
 {
 
@@ -44,6 +47,17 @@ public class AlgorithmController(
             return BadRequest(new { message = errors });
         }
 
+        var vvs = dbContext.Voivodeships
+            .Include(v => v.ParliamentDistricts)
+                .ThenInclude(d => d.TerytCounties)
+                    .ThenInclude(c => c.CountyPopulations)
+             .Include(v => v.ParliamentDistricts)
+                .ThenInclude(d => d.TerytCounties)
+                    .ThenInclude(c => c.ParliamentVotingResults)       
+            .Include(v => v.ParliamentDistricts)
+                .ThenInclude(d => d.TerytCounties)
+                    .ThenInclude(c => c.TerytNeighborCountyTerytNavigations) 
+            .ToList();
 
         return Ok(new { Id = 1 });
     }

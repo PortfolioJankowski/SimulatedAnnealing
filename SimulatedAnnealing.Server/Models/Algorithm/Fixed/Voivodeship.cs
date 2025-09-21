@@ -1,7 +1,4 @@
-﻿using Newtonsoft.Json;
-using SimulatedAnnealing.Server.Models.Algorithm.Variable;
-using System;
-using System.Collections.Generic;
+﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
 
 namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed;
 
@@ -10,6 +7,7 @@ public partial class Voivodeship
     public int VoivodeshipsId { get; set; }
     public string Name { get; set; } = null!;
     public virtual ICollection<District> Districts { get; set; } = new List<District>();
+    public virtual ICollection<ParliamentDistrict> ParliamentDistricts { get; set; } = new List<ParliamentDistrict>();
 
     public Voivodeship DeepClone(Voivodeship blueprint, Voivodeship toClone)
     {

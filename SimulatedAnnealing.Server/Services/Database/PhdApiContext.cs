@@ -133,6 +133,86 @@ public partial class PhdApiContext : IdentityDbContext<AppUser>
                 .HasConstraintName("FK__Wyniki__PowiatID__48CFD27E");
         });
 
+        modelBuilder.Entity<CountyPopulation>(entity =>
+        {
+            entity.HasKey(e => new { e.CountyTeryt, e.Year });
+
+            entity.ToTable("CountyPopulation", "Parliament");
+
+            entity.Property(e => e.CountyTeryt)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.CountyTerytNavigation).WithMany(p => p.CountyPopulations)
+                .HasForeignKey(d => d.CountyTeryt)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CountyPopulation_Counties");
+        });
+
+        modelBuilder.Entity<ParliamentDistrict>(entity =>
+        {
+            entity.ToTable("ParliamentDistricts", "Parliament");
+        });
+
+        modelBuilder.Entity<ParliamentVotingResult>(entity =>
+        {
+            entity.HasKey(e => e.ResultsId).HasName("PK_VotingResults");
+
+            entity.ToTable("ParliamentVotingResults", "Parliament");
+
+            entity.Property(e => e.Comitee).IsUnicode(false);
+            entity.Property(e => e.CountyTeryt)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.CountyTerytNavigation).WithMany(p => p.ParliamentVotingResults)
+                .HasForeignKey(d => d.CountyTeryt)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_VotingResults_Counties");
+        });
+
+        modelBuilder.Entity<TerytCounty>(entity =>
+        {
+            entity.HasKey(e => e.Teryt);
+
+            entity.ToTable("TerytCounties", "Parliament");
+
+            entity.Property(e => e.Teryt)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.District).WithMany(p => p.TerytCounties)
+                .HasForeignKey(d => d.DistrictId)
+                .HasConstraintName("FK_TerytCounties_ParliamentDistricts");
+        });
+
+        modelBuilder.Entity<TerytNeighbor>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_Neighbors");
+
+            entity.ToTable("TerytNeighbors", "Parliament");
+
+            entity.Property(e => e.CountyTeryt)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.NeighborTeryt)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.CountyTerytNavigation).WithMany(p => p.TerytNeighborCountyTerytNavigations)
+                .HasForeignKey(d => d.CountyTeryt)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Neighbors_County");
+
+            entity.HasOne(d => d.NeighborTerytNavigation).WithMany(p => p.TerytNeighborNeighborTerytNavigations)
+                .HasForeignKey(d => d.NeighborTeryt)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Neighbors_Neighbor");
+        });
+
         OnModelCreatingPartial(modelBuilder);
     }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
