@@ -33,9 +33,68 @@ public partial class SimulatedAnnealingService
 
     public async Task<LocalOptimizedResults> OptimizeParliamentDistrictRequest(OptimizeParliamentDistrictRequest request)
     {
-        var algorithmConfiguration = _algorithmConfigurationBuilder.Build(request.ToLocalResutlsRequest());
-        
-        throw new NotImplementedException();
+        var districtInformation = request.ToLocalResutlsRequest();
+        var localRequest = new OptimizeLocalDistrictsRequest
+        {
+            DistrictInformation = districtInformation
+        };
+
+        //TUTAJ JEST KOMUNIKACJA Z BAZĄ => TRZEBA TO ODWZOROWAĆ DLA PARLAMENTU
+        var algorithmConfiguration = _algorithmConfigurationBuilder.Build(localRequest.DistrictInformation);
+        algorithmConfiguration.MaxIterations = 100;
+
+
+        //TUTAJ TEŻ JEST KOMUNIKACJA Z BAZĄ, TRZEBA TO ODWZOROWAĆ
+        var currentSolution = _stateBuilder
+            .SetVoivodeship(localRequest.DistrictInformation).Result
+            .CalculateInhabitants()
+            .CalculateVoievodianshipSeatsAmount()
+            .CalculatePopulationIndex()
+            .CalculateDistrictResults(localRequest.DistrictInformation.PoliticalParty)
+            .CalculateScore(localRequest, algorithmConfiguration)
+            .Build();
+
+
+        var initialResult = GetInitialStateResults(currentSolution);    
+        var initialScore = currentSolution.Indicator!.Score;
+        var bestSolution = currentSolution;
+        var bestObjective = initialScore;
+
+        int neighboursAmount = RANDOM_COUNTIES_GENERATED_PER_ITERATION;
+        var currentObjective = currentSolution.Indicator!.Score;
+        var bestRandomSolutionObjective = 0d;
+
+        for (int i = 0; i < algorithmConfiguration.MaxIterations; i++)
+        {
+            var randomStates = await GenerateRandomSolutions(currentSolution, algorithmConfiguration.StepSize, neighboursAmount, localRequest.DistrictInformation.Year);
+            var bestRandomSolution = GetBestRandomSolution(randomStates, localRequest, algorithmConfiguration);
+            bestRandomSolutionObjective = bestRandomSolution.Indicator!.Score;
+
+            if (bestRandomSolutionObjective > currentObjective ||
+                _random.NextDouble() < Math.Exp((bestRandomSolutionObjective - currentObjective) / algorithmConfiguration.Temperature))
+            {
+                currentSolution = bestRandomSolution;
+                currentObjective = bestRandomSolutionObjective;
+
+                if (currentObjective > bestObjective)
+                {
+                    bestSolution = currentSolution;
+                    bestObjective = currentObjective;
+                }
+            }
+            algorithmConfiguration.Temperature *= algorithmConfiguration.CoolingRate;
+        }
+
+        var algorithmResults = GetAlgorithmResults(bestSolution);
+        return new LocalOptimizedResults()
+        {
+            StartScore = initialScore,
+            InitialResult = initialResult,
+            OptimizedResults = algorithmResults.Item1,
+            NewConfiguration = algorithmResults.Item2,
+            OptimizedScore = bestSolution.Indicator.Score,
+            VoivodeshipName = localRequest.DistrictInformation.VoivodeshipName
+        };
     }
 
 

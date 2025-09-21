@@ -20,6 +20,7 @@ public class AlgorithmController(
     PhdApiContext dbContext
     ) : Controller
 {
+    //TODO => LEPSZE POKAZANIE DANYCH. ŻEBY POKAZYWAŁO ILE OKRĘGÓW BYŁO I ILE JEST
 
     [HttpPost("optimize-local")]
     public async Task<ActionResult<LocalOptimizedResults>> GetOptimisedVoivodeship(
@@ -62,17 +63,14 @@ public class AlgorithmController(
         List<LocalOptimizedResults> optimizedResults = new();
         foreach (var v in vvs)
         {
-            var request = new OptimizeLocalDistrictsRequest()
+            var request = new OptimizeParliamentDistrictRequest()
             {
-                DistrictInformation = new LocalResultsRequest()
-                {
-                    PoliticalParty = parliamentRequest.comittee.GetDescription(),
-                    VoivodeshipName = v.Name,
-                    Year = parliamentRequest.year,
-                }
+                PoliticalParty = parliamentRequest.comittee.GetDescription(),
+                VoivodeshipName = v.Name,
+                Year = parliamentRequest.year
             };
 
-            optimizedResults.Add(await simulatedAnnealingService.OptimizeLocal(request));
+            optimizedResults.Add(await simulatedAnnealingService.OptimizeParliamentDistrictRequest(request));
         }
 
         return Ok(optimizedResults);
