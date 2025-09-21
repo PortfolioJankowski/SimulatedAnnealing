@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
+using SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
 using SimulatedAnnealing.Server.Models.Algorithm.Variable;
 using SimulatedAnnealing.Server.Models.Authentication;
+using System;
+using System.Collections.Generic;
+using System.Data;
 
 namespace SimulatedAnnealing.Server.Services.Database;
 
@@ -25,6 +26,11 @@ public partial class PhdApiContext : IdentityDbContext<AppUser>
     public virtual DbSet<Neighbor> Neighbors { get; set; }
     public virtual DbSet<Voivodeship> Voivodeships { get; set; }
     public virtual DbSet<VotingResult> VotingResults { get; set; }
+    public virtual DbSet<CountyPopulation> CountyPopulations { get; set; }
+    public virtual DbSet<ParliamentDistrict> ParliamentDistricts { get; set; }
+    public virtual DbSet<ParliamentVotingResult> ParliamentVotingResults { get; set; }
+    public virtual DbSet<TerytCounty> TerytCounties { get; set; }
+    public virtual DbSet<TerytNeighbor> TerytNeighbors { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
