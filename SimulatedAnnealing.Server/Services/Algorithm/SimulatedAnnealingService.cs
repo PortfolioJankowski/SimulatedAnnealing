@@ -31,8 +31,10 @@ public partial class SimulatedAnnealingService
         _algorithmConfigurationBuilder = algorithmConfigurationBuilder;
     }
 
-    public async Task<LocalOptimizedResults> OptimizeParliamentDistrict(OptimizeLocalDistrictsRequest request)
+    public async Task<LocalOptimizedResults> OptimizeParliamentDistrictRequest(OptimizeParliamentDistrictRequest request)
     {
+        var algorithmConfiguration = _algorithmConfigurationBuilder.Build(request.ToLocalResutlsRequest());
+        
         throw new NotImplementedException();
     }
 
