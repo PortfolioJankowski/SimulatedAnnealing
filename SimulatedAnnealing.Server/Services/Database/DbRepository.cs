@@ -35,6 +35,16 @@ public class DbRepository : IDbRepository
             return await GetVoivodeshipFromDatabaseAsync(request);
         });
     }
+
+    public async Task<Voivodeship?> GetParliamentVoivodeshipAsync(InitialStateRequest request)
+    {
+        string key = $"voivodeship-parliament-{request.VoivodeshipName}-{request.Year}";
+
+        return await _distributedCache.GetOrCreateAsync(key, async token =>
+        {
+            return await GetParliamentVoivodeshipFromDatabaseAsync(request);
+        });
+    }
     public async Task<GerrymanderingResult?> GetGerrymanderringResultsAsync(LocalResultsRequest request)
     {
         string key = $"results-{request.VoivodeshipName}-{request.Year}-{request.PoliticalParty}";
@@ -83,7 +93,37 @@ public class DbRepository : IDbRepository
                 $"{request.VoivodeshipName} in {request.Year} located in {request.VoivodeshipName}");
             throw;
         }
+    }
 
+    private async Task<Voivodeship?> GetParliamentVoivodeshipFromDatabaseAsync(InitialStateRequest request)
+    {
+        try
+        {
+            var currentVoivodeship = _context.Voivodeships
+                .AsNoTracking()
+                .Where(v => v.Name == request.VoivodeshipName)
+                .Include(v => v.ParliamentDistricts)
+                    .ThenInclude(d => d.TerytCounties)
+                        .ThenInclude(c => c.CountyPopulations)
+                .Include(v => v.ParliamentDistricts)
+                    .ThenInclude(d => d.TerytCounties)
+                        .ThenInclude(c => c.TerytNeighborCountyTerytNavigations)
+                .Include(v => v.ParliamentDistricts)
+                    .ThenInclude(d => d.TerytCounties)
+                        .ThenInclude(c => c.ParliamentVotingResults.Where(r => r.Year == request.Year))
+                .First();
+
+            return await GetVoivodeshipNeighborsAsync(currentVoivodeship, true);
+        }
+        catch (VoivodeshipNotFoundException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error occurred while fetching voivodeship '{VoivodeshipName}' for year {Year}.", request.VoivodeshipName, request.Year);
+            throw;
+        }
     }
 
     private async Task<Voivodeship?> GetVoivodeshipFromDatabaseAsync(InitialStateRequest request)
@@ -118,8 +158,44 @@ public class DbRepository : IDbRepository
         }
     }
 
-    private async Task<Voivodeship> GetVoivodeshipNeighborsAsync(Voivodeship voivodeship)
+    private async Task<Voivodeship> GetVoivodeshipNeighborsAsync(Voivodeship voivodeship, bool isParliament = false)
     {
+        if (isParliament)
+        {
+            var terytNeighbors = await _context.TerytNeighbors
+                .Include(n => n.CountyTerytNavigation)
+                .Include(n => n.NeighborTerytNavigation)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var terytCounties = await _context
+                .TerytCounties
+                .Include(c => c.CountyPopulations)
+                .Include(c => c.ParliamentVotingResults)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var neighLookup = terytNeighbors
+                .GroupBy(n => n.CountyTerytNavigation.Teryt)
+                .ToDictionary(g => g.Key, g => g.Select(n => n.NeighborTerytNavigation.Teryt).ToList());
+
+            var allVoivodeshipCounties = voivodeship.ParliamentDistricts
+                .SelectMany(district => district.TerytCounties)
+                .ToList();
+
+            foreach (var county in allVoivodeshipCounties)
+            {
+                if (neighLookup.TryGetValue(county.Teryt, out var neighborTeryts))
+                {
+                    county.NeighboringCounties = terytCounties
+                        .Where(c => neighborTeryts.Contains(c.Teryt))
+                        .ToList();
+                }
+            }
+
+            return voivodeship;
+        }
+
         var neighbors = await _context.Neighbors.AsQueryable().ToListAsync();
         var counties = await _context.Counties.AsQueryable().ToListAsync();
 
@@ -150,6 +226,5 @@ public class DbRepository : IDbRepository
         return bestParties;
     }
 
-
-
+    
 }

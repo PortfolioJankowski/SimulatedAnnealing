@@ -49,15 +49,6 @@ public class AlgorithmController(
         }
 
         var vvs = dbContext.Voivodeships
-            .Include(v => v.ParliamentDistricts)
-                .ThenInclude(d => d.TerytCounties)
-                    .ThenInclude(c => c.CountyPopulations)
-             .Include(v => v.ParliamentDistricts)
-                .ThenInclude(d => d.TerytCounties)
-                    .ThenInclude(c => c.ParliamentVotingResults)
-            .Include(v => v.ParliamentDistricts)
-                .ThenInclude(d => d.TerytCounties)
-                    .ThenInclude(c => c.TerytNeighborCountyTerytNavigations)
             .ToList();
 
         List<LocalOptimizedResults> optimizedResults = new();

@@ -1,4 +1,6 @@
-﻿namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
 
 public partial class TerytCounty
 {
@@ -17,4 +19,6 @@ public partial class TerytCounty
     public virtual ICollection<TerytNeighbor> TerytNeighborCountyTerytNavigations { get; set; } = new List<TerytNeighbor>();
 
     public virtual ICollection<TerytNeighbor> TerytNeighborNeighborTerytNavigations { get; set; } = new List<TerytNeighbor>();
+    [NotMapped]
+    public virtual List<TerytCounty> NeighboringCounties { get; set; } = new List<TerytCounty>();
 }
