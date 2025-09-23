@@ -39,16 +39,15 @@ public partial class SimulatedAnnealingService
             DistrictInformation = districtInformation
         };
 
-        //TUTAJ JEST KOMUNIKACJA Z BAZĄ => TRZEBA TO ODWZOROWAĆ DLA PARLAMENTU
         var algorithmConfiguration = _algorithmConfigurationBuilder.Build(localRequest.DistrictInformation, true);
         algorithmConfiguration.MaxIterations = 100;
 
 
         _stateBuilder.SetParliament(true);
-        //TUTAJ TEŻ JEST KOMUNIKACJA Z BAZĄ, TRZEBA TO ODWZOROWAĆ
         var currentSolution = _stateBuilder
             .SetVoivodeship(localRequest.DistrictInformation).Result
             .CalculateInhabitants()
+            //PONIŻEJ DO ZROBIENIA
             .CalculateVoievodianshipSeatsAmount()
             .CalculatePopulationIndex()
             .CalculateDistrictResults(localRequest.DistrictInformation.PoliticalParty)

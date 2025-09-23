@@ -31,6 +31,7 @@ public class AlgorithmConfigurationBuilder
             config = HandleParliamentCase(request);
             return config;
         }
+
         string partia = request.PoliticalParty;
         string wojewodztwo = request.VoivodeshipName;
         int rok = request.Year;

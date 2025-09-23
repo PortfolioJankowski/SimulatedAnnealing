@@ -16,7 +16,7 @@ public class VoivodeshipStateBuilder
     public VoivodeshipStateBuilder(ComplianceService complianceService, IDbRepository dbRepository)
     {
         _complianceService = complianceService;
-        _dbRepository = dbRepository;
+        _dbRepository = dbRepository; 
     }
 
     public void SetParliament(bool isParliament)
@@ -49,6 +49,7 @@ public class VoivodeshipStateBuilder
     {
         if (_isParliament)
         {
+            _voivodeshipState.VoivodeshipInhabitants = _complianceService.GetVoivodeshipInhabitants(_voivodeshipState.ActualConfiguration.ParliamentDistricts);
             return this;
         }
         _voivodeshipState.VoivodeshipInhabitants = _complianceService.GetVoivodeshipInhabitants(_voivodeshipState.ActualConfiguration.Districts);
@@ -59,6 +60,7 @@ public class VoivodeshipStateBuilder
     {
         if (_isParliament)
         {
+            _voivodeshipState.VoivodeshipSeatsAmount = _complianceService.CalculateSeatsAmountForVoievodianshipParliament(_voivodeshipState.ActualConfiguration.ParliamentDistricts.Select(d => d.Id).ToArray());
             return this;
         }
         _voivodeshipState.VoivodeshipSeatsAmount = _complianceService.CalculateSeatsAmountForVoievodianship(_voivodeshipState.VoivodeshipInhabitants);

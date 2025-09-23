@@ -1,4 +1,5 @@
 ﻿using SimulatedAnnealing.Server.Models.Algorithm.Fixed;
+using SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
 
 namespace SimulatedAnnealing.Server.Services.Behavioral;
 public class ComplianceService
@@ -6,15 +7,67 @@ public class ComplianceService
     private readonly IConfiguration _configuration;
     public ComplianceService(IConfiguration configuration)
     {
-
         _configuration = configuration;
     }
+    public static Dictionary<int, int> ParliamentDistrictsSeats2023 { get; } = new Dictionary<int, int>
+    {
+        // Numer okregu, liczba mandatow
+        { 1, 12 },
+        { 2, 8 },
+        { 3, 14 },
+        { 4, 12 },
+        { 5, 13 },
+        { 6, 15 },
+        { 7, 12 },
+        { 8, 12 },
+        { 9, 10 },
+        { 10, 9 },
+        { 11, 12 },
+        { 12, 8 },
+        { 13, 14 },
+        { 14, 10 },
+        { 15, 9 },
+        { 16, 10 },
+        { 17, 9 },
+        { 18, 12 },
+        { 19, 20 },
+        { 20, 12 },
+        { 21, 12 },
+        { 22, 11 },
+        { 23, 15 },
+        { 24, 14 },
+        { 25, 12 },
+        { 26, 14 },
+        { 27, 9 },
+        { 28, 7 },
+        { 29, 9 },
+        { 30, 9 },
+        { 31, 12 },
+        { 32, 9 },
+        { 33, 16 },
+        { 34, 8 },
+        { 35, 10 },
+        { 36, 12 },
+        { 37, 9 },
+        { 38, 9 },
+        { 39, 10 },
+        { 40, 8 },
+        { 41, 12 }
+    };
 
     public int GetVoivodeshipInhabitants(ICollection<District> districts)
     {
         return districts
              .SelectMany(d => d.Counties)
              .Sum(p => p.Inahabitants);
+    }
+
+    public int GetVoivodeshipInhabitants(ICollection<ParliamentDistrict> districts)
+    {
+        return districts
+            .SelectMany(d => d.TerytCounties)
+            .SelectMany(c => c.CountyPopulations)
+            .Sum(p => p.Population);
     }
 
     public double GetPopulationIndex(int voivodeshipInhabitants, int voivodeshipSeatsAmount) => voivodeshipInhabitants / voivodeshipSeatsAmount;
@@ -112,7 +165,20 @@ public class ComplianceService
         return inhabitants > 2_000_000 ? 30 + (int)Math.Ceiling((inhabitants - 2_000_000) / 500_000.0) * 3 : 30;
     }
 
+    internal int CalculateSeatsAmountForVoievodianshipParliament(params int[] ids)
+    {
+        int sum = 0;
+        foreach (int id in ids)
+        {
+            if (ParliamentDistrictsSeats2023.TryGetValue(id, out int value))
+            {
+                sum += value;
+            }
+        }
+        return sum;
+    }
 }
+
 
 public class AdjustDTO
 {
