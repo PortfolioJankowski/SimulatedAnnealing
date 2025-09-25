@@ -6,13 +6,17 @@ namespace SimulatedAnnealing.Server.Services.Algorithm;
 
 public static class IndicatorService
 {
-    public static Indicator SetNewIndicator(VoivodeshipState state, OptimizeLocalDistrictsRequest request, AlgorithmConfiguration config)
+    public static Indicator SetNewIndicator(VoivodeshipState state, OptimizeLocalDistrictsRequest request, AlgorithmConfiguration config, bool isParliament = false)
     {
         var districtConfig = request.DistrictInformation;
         return new Indicator()
         {
-            Seats = GetSeatsSum(state, districtConfig.PoliticalParty),
-            Score = GetSeatsSum(state, districtConfig.PoliticalParty) + GetGerrymanderingScore(state, request, config),
+            Seats = isParliament ?
+                GetParliamentSum(state, districtConfig.PoliticalParty)
+                : GetSeatsSum(state, districtConfig.PoliticalParty),
+            Score = isParliament ?
+                GetParliamentSum(state, districtConfig.PoliticalParty) + GetParliamentGerrymanderingScore(state, request, config)
+               : GetSeatsSum(state, districtConfig.PoliticalParty) + GetGerrymanderingScore(state, request, config)
         };
     }
     private static int GetSeatsSum(VoivodeshipState state, string choosenParty)
@@ -49,6 +53,63 @@ public static class IndicatorService
                     if (choosenPartyResult != null)
                     {
                         totalVotesForChosenParty += choosenPartyResult.NumberVotes ?? 0;
+                    }
+                    totalVotes += countyVotes;
+                }
+            }
+
+            if (totalVotes > 0)
+            {
+                double targetPartyPercentage = totalVotesForChosenParty / totalVotes;
+
+                // efekt pakowania rośnie, kiedy pakowanie okręgu jest większe niż pakowanie tresholdu
+                packingEffect += System.Math.Max(0, targetPartyPercentage - packingThreshold);
+                crackingEffect += System.Math.Max(0, crackingThreshold - targetPartyPercentage);
+            }
+        }
+
+        // Calculate total effect
+        return (packingWeight * packingEffect) + (crackingWeight * crackingEffect);
+    }
+
+
+
+
+
+    //======================= PARLAMENT
+    private static int GetParliamentSum(VoivodeshipState state, string choosenParty)
+    {
+        return state.ParliamentDistrictVotingResults!.Values
+            .SelectMany(district => district)
+            .Where(wyniki => wyniki.Key == choosenParty)
+            .Sum(mandaty => mandaty.Value);
+    }
+    private static double GetParliamentGerrymanderingScore(VoivodeshipState state, OptimizeLocalDistrictsRequest request, AlgorithmConfiguration config)
+    {
+        double packingEffect = 0;
+        double crackingEffect = 0;
+
+        double packingThreshold = config.PackingThreshold;
+        double crackingThreshold = config.CrackingThreshold;
+        double packingWeight = config.PackingWeight;
+        double crackingWeight = config.CrackingWeight;
+
+        double totalVotesForChosenParty = 0;
+        double totalVotes = 0;
+
+        foreach (var district in state.ActualConfiguration!.ParliamentDistricts)
+        {
+            foreach (var county in district.TerytCounties)
+            {
+                var countyResults = county.ParliamentVotingResults.Where(w => w.Year == request.DistrictInformation.Year).ToList();
+
+                if (countyResults.Any())
+                {
+                    int countyVotes = countyResults.Sum(r => r.NumberVotes); // Liczba głosów w powiecie
+                    var choosenPartyResult = countyResults.Where(r => r.Comitee == request.DistrictInformation.PoliticalParty).FirstOrDefault();
+                    if (choosenPartyResult != null)
+                    {
+                        totalVotesForChosenParty += choosenPartyResult.NumberVotes;
                     }
                     totalVotes += countyVotes;
                 }

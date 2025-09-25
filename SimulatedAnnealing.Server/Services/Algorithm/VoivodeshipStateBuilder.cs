@@ -88,11 +88,7 @@ public class VoivodeshipStateBuilder
 
     internal VoivodeshipStateBuilder CalculateScore(OptimizeLocalDistrictsRequest request, AlgorithmConfiguration config)
     {
-        if (_isParliament)
-        {
-            return this;
-        }
-        _voivodeshipState.Indicator = IndicatorService.SetNewIndicator(_voivodeshipState, request, config);
+        _voivodeshipState.Indicator = IndicatorService.SetNewIndicator(_voivodeshipState, request, config, _isParliament);
         return this;
     }
 }
