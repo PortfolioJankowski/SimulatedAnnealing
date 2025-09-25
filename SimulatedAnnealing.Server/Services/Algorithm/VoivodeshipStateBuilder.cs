@@ -69,10 +69,6 @@ public class VoivodeshipStateBuilder
 
     public VoivodeshipStateBuilder CalculatePopulationIndex()
     {
-        if (_isParliament)
-        {
-            return this;
-        }
         _voivodeshipState.PopulationIndex = _complianceService.GetPopulationIndex(_voivodeshipState.VoivodeshipInhabitants, _voivodeshipState.VoivodeshipSeatsAmount);
         return this;
     }
@@ -81,9 +77,12 @@ public class VoivodeshipStateBuilder
     {
         if (_isParliament)
         {
-            return this;
+            _voivodeshipState.ParliamentDistrictVotingResults = _complianceService.CalculateResultsForParliamentDistricts(_voivodeshipState.ActualConfiguration!, _voivodeshipState.VoivodeshipSeatsAmount, _voivodeshipState.PopulationIndex, choosenParty);
         }
-        _voivodeshipState.DistrictVotingResults = _complianceService.CalculateResultsForDistricts(_voivodeshipState.ActualConfiguration!, _voivodeshipState.VoivodeshipSeatsAmount, _voivodeshipState.PopulationIndex, choosenParty);
+        else
+        {
+            _voivodeshipState.DistrictVotingResults = _complianceService.CalculateResultsForDistricts(_voivodeshipState.ActualConfiguration!, _voivodeshipState.VoivodeshipSeatsAmount, _voivodeshipState.PopulationIndex, choosenParty);
+        }
         return this;
     }
 

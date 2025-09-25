@@ -85,10 +85,22 @@ public class ComplianceService
 
         return districtSeats.All(seats => seats is >= 5 and <= 15);
     }
+    internal Dictionary<ParliamentDistrict, Dictionary<string, int>> CalculateResultsForParliamentDistricts(Voivodeship configuration, int maxSeats, double populationIndex, string choosenParty)
+    {
+        var districtSeats = CalculateParliamentDistrictSeats(configuration.ParliamentDistricts, populationIndex);
+        int totalSeats = districtSeats.Sum();
+        if (totalSeats != maxSeats)
+        {
+            districtSeats = AdjustParliamentSeats(new AdjustDTO(districtSeats, totalSeats, maxSeats, configuration.Districts, configuration.ParliamentDistricts));
+        }
 
-    internal Dictionary<District, Dictionary<string, int>> CalculateResultsForDistricts(Voivodeship configuration, int maxSeats, double populationIndex, string choosenParty)
+        return GetResultsForDistricts(configuration.ParliamentDistricts, districtSeats, choosenParty);
+    }
+    internal Dictionary<District, Dictionary<string, int>> 
+        CalculateResultsForDistricts(Voivodeship configuration, int maxSeats, double populationIndex, string choosenParty)
     {
         var districtSeats = CalculateDistrictSeats(configuration.Districts, populationIndex);
+
         int totalSeats = districtSeats.Sum();
 
         if (totalSeats != maxSeats)
@@ -96,7 +108,7 @@ public class ComplianceService
             districtSeats = AdjustSeats(new AdjustDTO(districtSeats, totalSeats, maxSeats, configuration.Districts));
         }
 
-        return GetResultsForDistricts(configuration.Districts, districtSeats, choosenParty);
+         return GetResultsForDistricts(configuration.Districts, districtSeats, choosenParty);
     }
 
     private Dictionary<District, Dictionary<string, int>> GetResultsForDistricts(ICollection<District> districts, int[] districtSeats, string choosenParty)
@@ -108,6 +120,27 @@ public class ComplianceService
         {
             var votingResults = district.Counties.SelectMany(p => p.VotingResults)
                 .GroupBy(w => w.Committee)
+                .ToDictionary(g => g.Key, g => g.Sum(w => (int)w.NumberVotes!));
+
+            int totalSeats = districtSeats[Array.IndexOf(districtArray, district)];
+            var seatDistribution = DistributeSeats(votingResults, totalSeats);
+
+            results[district] = seatDistribution;
+            district.PartySeats = seatDistribution.GetValueOrDefault(choosenParty, 0);
+        }
+
+        return results;
+    }
+
+    private Dictionary<ParliamentDistrict, Dictionary<string, int>> GetResultsForDistricts(ICollection<ParliamentDistrict> districts, int[] districtSeats, string choosenParty)
+    {
+        var results = new Dictionary<ParliamentDistrict, Dictionary<string, int>>();
+        var districtArray = districts.ToArray();
+
+        foreach (var district in districts)
+        {
+            var votingResults = district.TerytCounties.SelectMany(p => p.ParliamentVotingResults)
+                .GroupBy(w => w.Comitee)
                 .ToDictionary(g => g.Key, g => g.Sum(w => (int)w.NumberVotes!));
 
             int totalSeats = districtSeats[Array.IndexOf(districtArray, district)];
@@ -150,14 +183,51 @@ public class ComplianceService
         return data.ActualDistribution;
     }
 
+    private int[] AdjustParliamentSeats(AdjustDTO data)
+    {
+        var populationIndexes = GetParliamentDistrictPopulationIndexes(data.ParliamentDistricts!, data.ActualDistribution);
+
+        while (data.CountedSeats != data.MaxSeats)
+        {
+            int index = populationIndexes.ToList().IndexOf(data.CountedSeats > data.MaxSeats ? populationIndexes.Min() : populationIndexes.Max());
+            data.ActualDistribution[index] += data.CountedSeats > data.MaxSeats ? -1 : 1;
+            data.CountedSeats += data.CountedSeats > data.MaxSeats ? -1 : 1;
+            populationIndexes = GetDistrictPopulationIndexes(data.Districts, data.ActualDistribution);
+        }
+
+        return data.ActualDistribution;
+    }
+
     private double[] GetDistrictPopulationIndexes(ICollection<District> districts, int[] seatDistribution)
     {
         return districts.Select((district, i) => (double)district.Counties.Sum(p => p.Inahabitants) / (seatDistribution[i] != 0 ? seatDistribution[i] : 1)).ToArray();
     }
 
+    private double[] GetParliamentDistrictPopulationIndexes(ICollection<ParliamentDistrict> districts, int[] seatDistribution)
+    {
+        return districts.Select((district, i) => (double)district.TerytCounties.SelectMany(c => c.CountyPopulations).Sum(p => p.Population) / (seatDistribution[i] != 0 ? seatDistribution[i] : 1)).ToArray();
+    }
+
     public int[] CalculateDistrictSeats(ICollection<District> districts, double populationIndex)
     {
         return districts.Select(d => (int)Math.Round(d.Counties.Sum(p => p.Inahabitants) / populationIndex)).ToArray();
+    }
+
+    public int[] CalculateParliamentDistrictSeats(ICollection<ParliamentDistrict> districts, double populationIndex)
+    {
+        int[] seats = new int[districts.Count];
+        int i = 0;
+        foreach (var district in districts)
+        {
+            if (ParliamentDistrictsSeats2023.TryGetValue(district.Id, out int value))
+            {
+                seats[i] = value;
+            }
+            i++;
+        }
+
+        return seats;
+       // tak to powinno wyglądać... return districts.Select(d => (int)Math.Round(d.TerytCounties.SelectMany(d=> d.CountyPopulations).Sum(p => p.Population) / populationIndex)).ToArray();
     }
 
     internal int CalculateSeatsAmountForVoievodianship(long inhabitants)
@@ -186,12 +256,14 @@ public class AdjustDTO
     public int CountedSeats { get; set; }
     public int MaxSeats { get; }
     public ICollection<District> Districts { get; }
+    public ICollection<ParliamentDistrict>? ParliamentDistricts {get;}
 
-    public AdjustDTO(int[] actualDistribution, int countedSeats, int maxSeats, ICollection<District> districts)
+    public AdjustDTO(int[] actualDistribution, int countedSeats, int maxSeats, ICollection<District> districts, ICollection<ParliamentDistrict>? parliamentDistricts = null)
     {
         ActualDistribution = actualDistribution;
         CountedSeats = countedSeats;
         MaxSeats = maxSeats;
         Districts = districts;
+        ParliamentDistricts = parliamentDistricts;
     }
 }

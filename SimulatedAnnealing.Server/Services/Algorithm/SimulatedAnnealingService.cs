@@ -47,9 +47,10 @@ public partial class SimulatedAnnealingService
         var currentSolution = _stateBuilder
             .SetVoivodeship(localRequest.DistrictInformation).Result
             .CalculateInhabitants()
-            //PONIŻEJ DO ZROBIENIA
             .CalculateVoievodianshipSeatsAmount()
             .CalculatePopulationIndex()
+
+            //TU JESZCZE TRZEBA SPRAWDZIĆ DLACZEGO MI TO ŹLE LICZY
             .CalculateDistrictResults(localRequest.DistrictInformation.PoliticalParty)
             .CalculateScore(localRequest, algorithmConfiguration)
             .Build();

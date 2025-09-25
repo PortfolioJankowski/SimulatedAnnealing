@@ -1,4 +1,6 @@
-﻿namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SimulatedAnnealing.Server.Models.Algorithm.Fixed.Parliament;
 
 public partial class ParliamentDistrict
 {
@@ -9,4 +11,7 @@ public partial class ParliamentDistrict
     public int? VoivodeshipId { get; set; }
 
     public virtual ICollection<TerytCounty> TerytCounties { get; set; } = new List<TerytCounty>();
+
+    [NotMapped]
+    public int PartySeats { get; set; }
 }
