@@ -7,5 +7,7 @@ public class LocalOptimizedResults
     public Dictionary<string, int> OptimizedResults { get; set; }
     public Dictionary<int, IEnumerable<string>> NewConfiguration { get; set; }
     public double OptimizedScore { get; set; }
+    public Dictionary<int, Dictionary<string, int>> OptimizedSeatsDistribution { get; set; }
+    public Dictionary<int, Dictionary<string, int>> InitialSeatsDistribution { get; set; }
 
 }

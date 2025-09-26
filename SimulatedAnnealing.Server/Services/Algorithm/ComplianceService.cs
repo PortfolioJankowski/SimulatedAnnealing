@@ -72,19 +72,59 @@ public class ComplianceService
 
     public double GetPopulationIndex(int voivodeshipInhabitants, int voivodeshipSeatsAmount) => voivodeshipInhabitants / voivodeshipSeatsAmount;
 
-    public bool AreLegalRequirementsMet(Voivodeship configuration, double populationIndex)
+    public bool AreLegalRequirementsMet(Voivodeship configuration, double populationIndex, bool isParliament = false)
     {
-        var districtSeats = CalculateDistrictSeats(configuration.Districts, populationIndex);
+        int[] districtSeats;
+
+        if (isParliament)
+        {
+            districtSeats = CalculateParliamentDistrictSeats(configuration.ParliamentDistricts, populationIndex);
+        }
+        else
+        {
+            districtSeats = CalculateDistrictSeats(configuration.Districts, populationIndex);
+        }
+
         int totalSeats = districtSeats.Sum();
-        var defaultSeatsAmount = _configuration.GetSection("DistrictsSeats").GetValue<int>(configuration.Name);
+        int defaultSeatsAmount = 0;
+
+        if (isParliament)
+        {
+            foreach (var district in configuration.ParliamentDistricts)
+            {
+               if (ComplianceService.ParliamentDistrictsSeats2023.TryGetValue(district.Id, out int value))
+                {
+                    defaultSeatsAmount += value;
+                }
+            }
+        }
+        else
+        {
+            defaultSeatsAmount = _configuration.GetSection("DistrictsSeats").GetValue<int>(configuration.Name);
+        }
 
         if (totalSeats != defaultSeatsAmount)
         {
-            districtSeats = AdjustSeats(new AdjustDTO(districtSeats, totalSeats, defaultSeatsAmount, configuration.Districts));
+            if (isParliament)
+            {
+                districtSeats = AdjustParliamentSeats(new AdjustDTO(districtSeats, totalSeats, defaultSeatsAmount, new List<District>(), configuration.ParliamentDistricts));
+            }
+            else
+            {
+                districtSeats = AdjustSeats(new AdjustDTO(districtSeats, totalSeats, defaultSeatsAmount, configuration.Districts));
+            }
         }
 
-        return districtSeats.All(seats => seats is >= 5 and <= 15);
+        if (isParliament)
+        {
+            return districtSeats.All(seats => seats is >= 7 and <= 20);
+        }
+        else
+        {
+            return districtSeats.All(seats => seats is >= 5 and <= 15);
+        }
     }
+
     internal Dictionary<ParliamentDistrict, Dictionary<string, int>> CalculateResultsForParliamentDistricts(Voivodeship configuration, int maxSeats, double populationIndex, string choosenParty)
     {
         var districtSeats = CalculateParliamentDistrictSeats(configuration.ParliamentDistricts, populationIndex);
@@ -96,6 +136,7 @@ public class ComplianceService
 
         return GetResultsForDistricts(configuration.ParliamentDistricts, districtSeats, choosenParty);
     }
+
     internal Dictionary<District, Dictionary<string, int>> 
         CalculateResultsForDistricts(Voivodeship configuration, int maxSeats, double populationIndex, string choosenParty)
     {
@@ -110,6 +151,8 @@ public class ComplianceService
 
          return GetResultsForDistricts(configuration.Districts, districtSeats, choosenParty);
     }
+
+
 
     private Dictionary<District, Dictionary<string, int>> GetResultsForDistricts(ICollection<District> districts, int[] districtSeats, string choosenParty)
     {
@@ -215,19 +258,19 @@ public class ComplianceService
 
     public int[] CalculateParliamentDistrictSeats(ICollection<ParliamentDistrict> districts, double populationIndex)
     {
-        int[] seats = new int[districts.Count];
-        int i = 0;
-        foreach (var district in districts)
-        {
-            if (ParliamentDistrictsSeats2023.TryGetValue(district.Id, out int value))
-            {
-                seats[i] = value;
-            }
-            i++;
-        }
+        //int[] seats = new int[districts.Count];
+        //int i = 0;
+        //foreach (var district in districts)
+        //{
+        //    if (ParliamentDistrictsSeats2023.TryGetValue(district.Id, out int value))
+        //    {
+        //        seats[i] = value;
+        //    }
+        //    i++;
+        //}
 
-        return seats;
-       // tak to powinno wyglądać... return districts.Select(d => (int)Math.Round(d.TerytCounties.SelectMany(d=> d.CountyPopulations).Sum(p => p.Population) / populationIndex)).ToArray();
+        //return seats;
+       return districts.Select(d => (int)Math.Round(d.TerytCounties.SelectMany(d=> d.CountyPopulations).Sum(p => p.Population) / populationIndex)).ToArray();
     }
 
     internal int CalculateSeatsAmountForVoievodianship(long inhabitants)
