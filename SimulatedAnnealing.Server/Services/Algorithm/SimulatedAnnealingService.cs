@@ -43,7 +43,8 @@ public partial class SimulatedAnnealingService
         };
 
         var algorithmConfiguration = _algorithmConfigurationBuilder.Build(localRequest.DistrictInformation, true);
-        algorithmConfiguration.MaxIterations = 100;
+        algorithmConfiguration.MaxIterations = 300;
+
 
 
         _stateBuilder.SetParliament(_isParliament);
@@ -463,9 +464,9 @@ public partial class SimulatedAnnealingService
     {
         if (_geolocator.IsParliamentDistrictBoundariesUnbroken(randomDistrict) && _geolocator.IsParliamentDistrictBoundariesUnbroken(neighboringDistrict))
         {
-            foreach (var dist in voivodeship.Districts)
+            foreach (var dist in voivodeship.ParliamentDistricts)
             {
-                if (_geolocator.IsDistrictBoundariesUnbroken(dist) && _complianceService.AreLegalRequirementsMet(voivodeship, populationIndex))
+                if (_geolocator.IsParliamentDistrictBoundariesUnbroken(dist) && _complianceService.AreLegalRequirementsMet(voivodeship, populationIndex, true))
                 {
                     return true; //New configuration is Valid!
                 }

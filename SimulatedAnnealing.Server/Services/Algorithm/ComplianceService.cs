@@ -235,7 +235,7 @@ public class ComplianceService
             int index = populationIndexes.ToList().IndexOf(data.CountedSeats > data.MaxSeats ? populationIndexes.Min() : populationIndexes.Max());
             data.ActualDistribution[index] += data.CountedSeats > data.MaxSeats ? -1 : 1;
             data.CountedSeats += data.CountedSeats > data.MaxSeats ? -1 : 1;
-            populationIndexes = GetDistrictPopulationIndexes(data.Districts, data.ActualDistribution);
+            populationIndexes = GetParliamentDistrictPopulationIndexes(data.ParliamentDistricts!, data.ActualDistribution);
         }
 
         return data.ActualDistribution;
