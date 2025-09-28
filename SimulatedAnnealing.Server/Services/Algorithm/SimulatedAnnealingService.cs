@@ -87,7 +87,7 @@ public partial class SimulatedAnnealingService
             algorithmConfiguration.Temperature *= algorithmConfiguration.CoolingRate;
         }
 
-        var algorithmResults = GetAlgorithmResults(bestSolution);
+        var algorithmResults = GetParliamentAlgorithmResults(bestSolution);
         return new LocalOptimizedResults()
         {
             StartScore = initialScore,
@@ -198,6 +198,49 @@ public partial class SimulatedAnnealingService
         foreach (var district in voivodeshipState.ActualConfiguration.Districts)
         {
             generatedCounties.Add(district.DistrictId, district.Counties.Select(c => c.Name).ToList());
+        }
+
+        return (seatsAmount, generatedCounties, districtSeats);
+    }
+
+    private static (
+    Dictionary<string, int> totalSeats,
+    Dictionary<int, IEnumerable<string>> generatedCounties,
+    Dictionary<int, Dictionary<string, int>> districtSeats
+    ) GetParliamentAlgorithmResults(VoivodeshipState voivodeshipState)
+    {
+        // suma mandatów w województwie (dla całych komitetów)
+        Dictionary<string, int> seatsAmount = new Dictionary<string, int>();
+
+        // mandaty w podziale na okręgi
+        Dictionary<int, Dictionary<string, int>> districtSeats = new Dictionary<int, Dictionary<string, int>>();
+
+        var results = voivodeshipState.ParliamentDistrictVotingResults;
+        foreach (var district in results!)
+        {
+            var districtId = district.Key;
+            var districtResult = new Dictionary<string, int>();
+
+            foreach (var value in district.Value)
+            {
+                // sumujemy do całości województwa
+                if (seatsAmount.ContainsKey(value.Key))
+                    seatsAmount[value.Key] += value.Value;
+                else
+                    seatsAmount.Add(value.Key, value.Value);
+
+                // zapisujemy dla danego okręgu
+                districtResult[value.Key] = value.Value;
+            }
+
+            districtSeats[districtId.Id] = districtResult;
+        }
+
+        // okręgi → powiaty
+        Dictionary<int, IEnumerable<string>> generatedCounties = new Dictionary<int, IEnumerable<string>>();
+        foreach (var district in voivodeshipState.ActualConfiguration.ParliamentDistricts)
+        {
+            generatedCounties.Add(district.Id, district.TerytCounties.Select(c => c.Name).ToList());
         }
 
         return (seatsAmount, generatedCounties, districtSeats);

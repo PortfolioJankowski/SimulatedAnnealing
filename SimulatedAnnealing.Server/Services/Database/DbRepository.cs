@@ -38,7 +38,7 @@ public class DbRepository : IDbRepository
 
     public async Task<Voivodeship?> GetParliamentVoivodeshipAsync(InitialStateRequest request)
     {
-        string key = $"voivodeship-parliament-{request.VoivodeshipName}-{request.Year}";
+        string key = $"voivodeship-{request.VoivodeshipName}-{request.Year}";
 
         return await _distributedCache.GetOrCreateAsync(key, async token =>
         {
@@ -64,7 +64,15 @@ public class DbRepository : IDbRepository
             throw new VoivodeshipNotFoundException($"No cached Voivodeship found for {toClone.Name}");
 
         var blueprint = JsonConvert.DeserializeObject<Voivodeship>(cachedJson);
-        return blueprint!.DeepClone(blueprint, toClone);
+
+        if (blueprint!.ParliamentDistricts.Any()) //rozgraniczam czy wybory parlamentowe czy samorz¹dowe
+        {
+            return blueprint!.DeepParliamentClone(blueprint, toClone);
+        }
+        else
+        {
+            return blueprint!.DeepClone(blueprint, toClone);
+        }
     }
 
     private async Task<GerrymanderingResult?> GetGerrymanderringResultsFromDatabaseAsync(LocalResultsRequest request)

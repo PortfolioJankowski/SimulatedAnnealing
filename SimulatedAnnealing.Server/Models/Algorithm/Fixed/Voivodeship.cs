@@ -47,4 +47,44 @@ public partial class Voivodeship
 
         };
     }
+
+    public Voivodeship DeepParliamentClone(Voivodeship blueprint, Voivodeship toClone)
+    {
+        return new Voivodeship
+        {
+            VoivodeshipsId = blueprint.VoivodeshipsId,
+            Name = blueprint.Name,
+            ParliamentDistricts = toClone.ParliamentDistricts.Select(d => new ParliamentDistrict
+            {
+                VoivodeshipId = d.VoivodeshipId,
+                Id = d.Id,
+                Name = d.Name,
+                TerytCounties = d.TerytCounties.Select(c => new TerytCounty
+                {
+                    Teryt = c.Teryt,
+                    DistrictId = c.DistrictId,
+                    Name = c.Name,
+                    CountyPopulations = c.CountyPopulations,
+                    NeighboringCounties = c.NeighboringCounties?.Select(nc => new TerytCounty
+                    {
+                        Teryt = nc.Teryt,
+                        Name = nc.Name
+                    }).ToList() ?? new List<TerytCounty>(),
+
+                    ParliamentVotingResults = c.ParliamentVotingResults?.Select(vr => new ParliamentVotingResult
+                    {
+                        ResultsId = vr.ResultsId,
+                        CountyTeryt = vr.CountyTeryt,
+                        Comitee = vr.Comitee,
+                        Year = vr.Year,
+                        NumberVotes = vr.NumberVotes,
+                        CountyTerytNavigation = vr.CountyTerytNavigation,
+                    }).ToList() ?? new List<ParliamentVotingResult>()
+
+                }).ToList()
+
+            }).ToList()
+
+        };
+    }
 }
