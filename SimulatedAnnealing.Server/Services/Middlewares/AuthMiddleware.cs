@@ -20,7 +20,7 @@ public class AuthMiddleware : IMiddleware
             return;
         }
 
-        context.Response.Headers.Add("Zapytaj", "Beczke");
+        context.Response.Headers.Add("AutoryzacjaDla", "SzkolaDoktorskaUS");
         await next(context);
     }
 }

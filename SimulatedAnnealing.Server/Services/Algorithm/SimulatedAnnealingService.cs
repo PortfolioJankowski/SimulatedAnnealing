@@ -43,7 +43,7 @@ public partial class SimulatedAnnealingService
         };
 
         var algorithmConfiguration = _algorithmConfigurationBuilder.Build(localRequest.DistrictInformation, true);
-        algorithmConfiguration.MaxIterations = 300;
+        algorithmConfiguration.MaxIterations = 1000;
 
 
 
@@ -67,6 +67,7 @@ public partial class SimulatedAnnealingService
         var currentObjective = currentSolution.Indicator!.Score;
         var bestRandomSolutionObjective = 0d;
 
+        //TODO ZAIMPLEMENTOWAĆ TEN STEPSIZE!
         for (int i = 0; i < algorithmConfiguration.MaxIterations; i++)
         {
             var randomStates = await GenerateRandomSolutions(currentSolution, algorithmConfiguration.StepSize, neighboursAmount, localRequest.DistrictInformation.Year);

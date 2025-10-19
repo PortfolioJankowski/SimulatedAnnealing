@@ -14,4 +14,13 @@ public partial class ParliamentDistrict
 
     [NotMapped]
     public int PartySeats { get; set; }
+
+    [NotMapped]
+    public int SeatsToAllocate { get; set; }
+
+    [NotMapped]
+    public int Population  => TerytCounties.SelectMany(c => c.CountyPopulations).Sum(c => c.Population);
+
+    [NotMapped]
+    public double DistrictJNP { get; set; }
 }

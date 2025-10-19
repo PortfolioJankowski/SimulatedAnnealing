@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Server.Models.Algorithm;
 using SimulatedAnnealing.Server.Models.Authentication;
 using SimulatedAnnealing.Server.Models.DTOs;
+using SimulatedAnnealing.Server.Models.JNP;
 using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Algorithm;
 using SimulatedAnnealing.Server.Services.Authentication;
@@ -40,8 +41,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValidator<LocalResultsRequest>, LocalResultsRequestValidator>();
         services.AddScoped<IValidator<OptimizeLocalDistrictsRequest>, OptimizeLocalDistrictsRequestValidator>();
         services.AddScoped<IValidator<OptimizeParliamentSeatsRequest>, OptimizeParliamentRequestValidator>();
+        services.AddScoped<IValidator<CheckJnpRequest>, JnpRequestValidator>();
+        services.AddScoped<ParliamentSeatAllocationService, ParliamentSeatAllocationService>(); 
         services.AddScoped<AlgorithmConfigurationBuilder>();
         services.Configure<AvailableDistricsOptions>(configuration.GetSection("AvailableDistricts"));
+        services.AddScoped<JnpService>();
         services.AddDistributedMemoryCache();
     }
 }

@@ -234,5 +234,11 @@ public class DbRepository : IDbRepository
         return bestParties;
     }
 
-    
+    public async Task<List<string>> GetVoivodeshipNamesAsync()
+    {
+        return await _context.Voivodeships
+            .AsNoTracking()
+            .Select(v => v.Name)
+            .ToListAsync();
+    }
 }

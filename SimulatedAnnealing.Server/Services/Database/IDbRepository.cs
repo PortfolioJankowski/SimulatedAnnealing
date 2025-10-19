@@ -11,4 +11,6 @@ public interface IDbRepository
     Task<Voivodeship> GetVoivodeShipClone(Voivodeship toClone, int year);
 
     Task<Voivodeship?> GetParliamentVoivodeshipAsync(InitialStateRequest request);
+
+    Task<List<string>> GetVoivodeshipNamesAsync();
 }

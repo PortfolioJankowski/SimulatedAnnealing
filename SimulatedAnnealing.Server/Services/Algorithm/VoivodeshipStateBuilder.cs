@@ -16,7 +16,7 @@ public class VoivodeshipStateBuilder
     public VoivodeshipStateBuilder(ComplianceService complianceService, IDbRepository dbRepository)
     {
         _complianceService = complianceService;
-        _dbRepository = dbRepository; 
+        _dbRepository = dbRepository;
     }
 
     public void SetParliament(bool isParliament)
@@ -41,7 +41,7 @@ public class VoivodeshipStateBuilder
             _voivodeshipState.ActualConfiguration = await _dbRepository.GetParliamentVoivodeshipAsync(initialStateRequest);
             return this;
         }
-        
+
         _voivodeshipState.ActualConfiguration = await _dbRepository.GetVoivodeshipAsync(initialStateRequest);
         return this;
     }

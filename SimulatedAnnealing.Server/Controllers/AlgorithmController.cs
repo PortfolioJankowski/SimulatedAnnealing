@@ -1,8 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SimulatedAnnealing.Server.Models.DTOs;
 using SimulatedAnnealing.Server.Models.Requests;
 using SimulatedAnnealing.Server.Services.Behavioral;
 using SimulatedAnnealing.Server.Services.Database;
