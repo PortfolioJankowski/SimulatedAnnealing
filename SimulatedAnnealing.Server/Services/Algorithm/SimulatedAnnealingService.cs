@@ -102,7 +102,6 @@ public partial class SimulatedAnnealingService
     public async Task<LocalOptimizedResults> OptimizeLocal(OptimizeLocalDistrictsRequest request)
     {
         var algorithmConfiguration = _algorithmConfigurationBuilder.Build(request.DistrictInformation);
-        algorithmConfiguration.MaxIterations = 100;
 
         var currentSolution = _stateBuilder
             .SetVoivodeship(request.DistrictInformation).Result
@@ -114,7 +113,7 @@ public partial class SimulatedAnnealingService
             .Build();
 
         var initialAlgorithmResult = GetAlgorithmResults(currentSolution);
-        var initialResult = GetInitialStateResults(currentSolution);    //for reaserch purpose
+        var initialResult = GetInitialStateResults(currentSolution);   
         var initialScore = currentSolution.Indicator!.Score;
         var bestSolution = currentSolution;
         var bestObjective = initialScore;
@@ -202,8 +201,7 @@ public partial class SimulatedAnnealingService
         return (seatsAmount, generatedCounties, districtSeats);
     }
 
-    private static (
-    Dictionary<string, int> totalSeats,
+    private static (Dictionary<string, int> totalSeats,
     Dictionary<int, IEnumerable<string>> generatedCounties,
     Dictionary<int, Dictionary<string, int>> districtSeats
     ) GetParliamentAlgorithmResults(VoivodeshipState voivodeshipState)
@@ -338,7 +336,7 @@ public partial class SimulatedAnnealingService
     private async Task<VoivodeshipState> GenerateSolution(VoivodeshipState voivodeshipState, double stepsize, int year)
     {
         var voivodeshipClone = await _dbRepository.GetVoivodeShipClone(voivodeshipState.ActualConfiguration, year);
-        voivodeshipClone = await MoveRandomCounty(voivodeshipClone, voivodeshipState.PopulationIndex);
+        voivodeshipClone = await MoveRandomCounty(voivodeshipClone, voivodeshipState.PopulationIndex, stepsize);
 
         if (!_complianceService.AreLegalRequirementsMet(voivodeshipClone, voivodeshipState.PopulationIndex, _isParliament))
         {
@@ -360,49 +358,61 @@ public partial class SimulatedAnnealingService
         };
     }
 
-    private async Task<Voivodeship> MoveRandomCounty(Voivodeship voivodeshipClone, double populationIndex)
+    private async Task<Voivodeship> MoveRandomCounty(Voivodeship voivodeshipClone, double populationIndex, double stepSize)
     {
-        if (_isParliament)
+        if (_isParliament) //TODO DODAĆ DO PARLAMENTU
             return HandleParliamentCountyMoving(voivodeshipClone, populationIndex);
 
-        return HandleLocalCountyMoving(voivodeshipClone, populationIndex);
+        return HandleLocalCountyMoving(voivodeshipClone, populationIndex, stepSize);
     }
 
-    private Voivodeship HandleLocalCountyMoving(Voivodeship voivodeshipClone, double populationIndex)
+    private Voivodeship HandleLocalCountyMoving(Voivodeship voivodeshipClone, double populationIndex, double stepSize)
     {
-        var randomDistrict = voivodeshipClone.Districts.OrderBy(d => _random.Next()).First();
-        var randomCounty = randomDistrict.Counties.OrderBy(c => _random.Next()).First();
-        District neighboringDistrict = null;
-        int maxCountyShiftsAmount = 100;
-        int attempt = 0;
+        int performedShifts = 0;
+        int maxAttemptsPerShift = 100;
 
-        while (neighboringDistrict is null && attempt < maxCountyShiftsAmount)
+        while (performedShifts < stepSize)
         {
-            attempt++;
-            neighboringDistrict = voivodeshipClone.Districts
-                                        .Where(d => d.DistrictId != randomDistrict.DistrictId)
-                                        .OrderBy(d => _random.Next())
-                                        .FirstOrDefault()!;
+            int attempt = 0;
+            bool shiftDone = false;
 
-            if (neighboringDistrict != null && Geolocator.IsCountyNeighbouringWithDistrict(randomCounty, neighboringDistrict))
+            while (!shiftDone && attempt < maxAttemptsPerShift)
             {
-                break;
+                attempt++;
+
+                // wybierz losowy powiat i okręg sąsiadujący
+                var randomDistrict = voivodeshipClone.Districts.OrderBy(d => _random.Next()).First();
+                var randomCounty = randomDistrict.Counties.OrderBy(c => _random.Next()).FirstOrDefault();
+                var neighboringDistrict = voivodeshipClone.Districts
+                    .Where(d => d.DistrictId != randomDistrict.DistrictId)
+                    .OrderBy(d => _random.Next())
+                    .FirstOrDefault(d => Geolocator.IsCountyNeighbouringWithDistrict(randomCounty, d));
+
+                if (neighboringDistrict is null || randomCounty is null)
+                    continue;
+
+                // przeniesienie powiatu
+                randomDistrict.Counties.Remove(randomCounty);
+                neighboringDistrict.Counties.Add(randomCounty);
+
+                if (AreDistrictsValid(voivodeshipClone, neighboringDistrict, randomDistrict, populationIndex))
+                {
+                    performedShifts++;
+                    shiftDone = true; // udane przesunięcie – wychodzimy z wewnętrznej pętli
+                }
+                else
+                {
+                    RestoreOriginalConfiguration(voivodeshipClone, randomDistrict, neighboringDistrict, randomCounty);
+                }
             }
-            else
+
+            if (!shiftDone)
             {
-                neighboringDistrict = null;
+                // nie udało się wykonać przesunięcia po maxAttemptsPerShift
+                return voivodeshipClone;
             }
         }
-        if (neighboringDistrict is null)
-            return voivodeshipClone; //No valid neighboring district found
-
-        randomDistrict.Counties.Remove(randomCounty);
-        neighboringDistrict.Counties.Add(randomCounty);
-
-        if (AreDistrictsValid(voivodeshipClone, neighboringDistrict, randomDistrict, populationIndex))
-            return voivodeshipClone;
-
-        return RestoreOriginalConfiguration(voivodeshipClone, randomDistrict, neighboringDistrict, randomCounty);
+        return voivodeshipClone;
     }
 
     private Voivodeship HandleParliamentCountyMoving(Voivodeship voivodeshipClone, double populationIndex)
