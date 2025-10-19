@@ -1,7 +1,9 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SimulatedAnnealing.Server.Models.Requests;
+using SimulatedAnnealing.Server.Services;
 using SimulatedAnnealing.Server.Services.Behavioral;
 using SimulatedAnnealing.Server.Services.Database;
 using SimulatedAnnealing.Server.Services.Extensions;
@@ -15,10 +17,10 @@ public class AlgorithmController(
     SimulatedAnnealingService simulatedAnnealingService,
     IValidator<OptimizeLocalDistrictsRequest> localValidator,
     IValidator<OptimizeParliamentSeatsRequest> parliamentValidator,
+    ParliamentSeatAllocationService allocationService,
     PhdApiContext dbContext
     ) : Controller
 {
-    //TODO => LEPSZE POKAZANIE DANYCH. ŻEBY POKAZYWAŁO ILE OKRĘGÓW BYŁO I ILE JEST
 
     [HttpPost("optimize-local")]
     public async Task<ActionResult<LocalOptimizedResults>> GetOptimisedVoivodeship(
@@ -46,12 +48,27 @@ public class AlgorithmController(
             return BadRequest(new { message = errors });
         }
 
-        var vvs = dbContext.Voivodeships.ToList();
+        var vvs = dbContext.Voivodeships
+            .Include(v => v.ParliamentDistricts)
+            .ThenInclude(d => d.TerytCounties).ThenInclude(c => c.CountyPopulations);
+
+        var okregi = vvs.SelectMany(v => v.ParliamentDistricts).ToList();
+        await allocationService.AllocateSeatsAsync(okregi);
 
         List<LocalOptimizedResults> optimizedResultsList = new();
 
         foreach (var v in vvs)
         {
+            var okregiWWojewodztwie = okregi
+                .Where(d => d.VoivodeshipId == v.VoivodeshipsId)
+                .ToList();
+
+             Dictionary<int, int> seatsByDistrict = new();
+             okregiWWojewodztwie.ForEach(d =>
+             {
+                 seatsByDistrict[d.Id] = d.SeatsToAllocate;
+             });
+
             var request = new OptimizeParliamentDistrictRequest()
             {
                 PoliticalParty = parliamentRequest.comittee.GetDescription(),
@@ -59,7 +76,7 @@ public class AlgorithmController(
                 Year = parliamentRequest.year
             };
 
-            optimizedResultsList.Add(await simulatedAnnealingService.OptimizeParliamentDistrictRequest(request));
+            optimizedResultsList.Add(await simulatedAnnealingService.OptimizeParliamentDistrictRequest(request, seatsByDistrict));
         }
 
         //AGREGACJA WYNIKÓW Z CZĘŚCI LOKALNYCH DO JEDNEGO OBIEKTU PARLIAMENTRESULTS
@@ -106,6 +123,12 @@ public class AlgorithmController(
         return "Test";
     }
 
+}
+
+public class ParliamentSeatAllocationResult
+{
+    public string VoivodeshipName { get; set; }
+    public Dictionary<string, int> SeatsByDistrict { get; set; }
 }
 
 public class ParliamentResults

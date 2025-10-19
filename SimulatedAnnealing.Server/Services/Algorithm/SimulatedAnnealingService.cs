@@ -33,7 +33,8 @@ public partial class SimulatedAnnealingService
         _algorithmConfigurationBuilder = algorithmConfigurationBuilder;
     }
 
-    public async Task<LocalOptimizedResults> OptimizeParliamentDistrictRequest(OptimizeParliamentDistrictRequest request)
+    //TODO -> SPRAWDZIĆ CZY APPLYSEATSADJUSTMENT DZIAŁA POPRAWNIE
+    public async Task<LocalOptimizedResults> OptimizeParliamentDistrictRequest(OptimizeParliamentDistrictRequest request, Dictionary<int, int> seatsByDistrict)
     {
         _isParliament = true;
         var districtInformation = request.ToLocalResutlsRequest();
@@ -43,20 +44,17 @@ public partial class SimulatedAnnealingService
         };
 
         var algorithmConfiguration = _algorithmConfigurationBuilder.Build(localRequest.DistrictInformation, true);
-        algorithmConfiguration.MaxIterations = 1000;
-
-
 
         _stateBuilder.SetParliament(_isParliament);
         var currentSolution = _stateBuilder
             .SetVoivodeship(localRequest.DistrictInformation).Result
             .CalculateInhabitants()
             .CalculateVoievodianshipSeatsAmount()
+            .ApplySeatsAdjustment(seatsByDistrict) 
             .CalculatePopulationIndex()
             .CalculateDistrictResults(localRequest.DistrictInformation.PoliticalParty)
             .CalculateScore(localRequest, algorithmConfiguration)
             .Build();
-
 
         var initialResult = GetInitialStateResults(currentSolution, _isParliament);    
         var initialScore = currentSolution.Indicator!.Score;
@@ -67,7 +65,6 @@ public partial class SimulatedAnnealingService
         var currentObjective = currentSolution.Indicator!.Score;
         var bestRandomSolutionObjective = 0d;
 
-        //TODO ZAIMPLEMENTOWAĆ TEN STEPSIZE!
         for (int i = 0; i < algorithmConfiguration.MaxIterations; i++)
         {
             var randomStates = await GenerateRandomSolutions(currentSolution, algorithmConfiguration.StepSize, neighboursAmount, localRequest.DistrictInformation.Year);

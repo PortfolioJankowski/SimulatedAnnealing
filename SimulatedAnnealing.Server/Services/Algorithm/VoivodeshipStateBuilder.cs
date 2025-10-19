@@ -91,5 +91,15 @@ public class VoivodeshipStateBuilder
         _voivodeshipState.Indicator = IndicatorService.SetNewIndicator(_voivodeshipState, request, config, _isParliament);
         return this;
     }
+
+    internal VoivodeshipStateBuilder ApplySeatsAdjustment(Dictionary<int, int> seatsByDistrict)
+    {
+        foreach (var district in _voivodeshipState.ActualConfiguration.ParliamentDistricts)
+        {
+            if (seatsByDistrict.TryGetValue(district.Id, out int seats))
+                district.SeatsToAllocate = seats;
+        }
+        return this;
+    }
 }
 
