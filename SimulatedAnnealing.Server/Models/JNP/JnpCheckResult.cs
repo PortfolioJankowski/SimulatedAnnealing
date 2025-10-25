@@ -9,5 +9,6 @@
         public int SeatsCalculated { get; set; }
         public int Inhibitants { get; set; }
         public double DistrictJNP { get; set; } 
+        public double CountryJNPRatio { get; set; }
     }
 }

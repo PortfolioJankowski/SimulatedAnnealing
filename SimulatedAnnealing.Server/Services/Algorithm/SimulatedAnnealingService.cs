@@ -44,6 +44,7 @@ public partial class SimulatedAnnealingService
         };
 
         var algorithmConfiguration = _algorithmConfigurationBuilder.Build(localRequest.DistrictInformation, true);
+        algorithmConfiguration.MaxIterations = 100;
 
         _stateBuilder.SetParliament(_isParliament);
         var currentSolution = _stateBuilder
@@ -102,6 +103,7 @@ public partial class SimulatedAnnealingService
     public async Task<LocalOptimizedResults> OptimizeLocal(OptimizeLocalDistrictsRequest request)
     {
         var algorithmConfiguration = _algorithmConfigurationBuilder.Build(request.DistrictInformation);
+        algorithmConfiguration.MaxIterations = 100;
 
         var currentSolution = _stateBuilder
             .SetVoivodeship(request.DistrictInformation).Result

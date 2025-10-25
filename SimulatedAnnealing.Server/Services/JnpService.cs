@@ -44,7 +44,8 @@ namespace SimulatedAnnealing.Server.Services
 
             var okregi = stany.SelectMany(s => s.ActualConfiguration.ParliamentDistricts).ToList();
             await allocationService.AllocateSeatsAsync(okregi);
-
+            double countryJNP = okregi.Sum(o => o.Population) / 460.0;
+            
             var results = new List<JnpCheckResult>();
 
             foreach (var okreg in okregi)
@@ -61,12 +62,13 @@ namespace SimulatedAnnealing.Server.Services
                     SeatsDeclared = seatsDeclared,
                     Inhibitants = okreg.Population,
                     DistrictJNP = okreg.DistrictJNP,
+                    CountryJNPRatio = okreg.DistrictJNP / countryJNP
                 };
 
                 results.Add(result);
             }
 
-            return new CheckJnpResponse { Results = results, JNP = okregi.Sum(o => o.Population)/460 };
+            return new CheckJnpResponse { Results = results, JNP = countryJNP };
         }
     }
 }
