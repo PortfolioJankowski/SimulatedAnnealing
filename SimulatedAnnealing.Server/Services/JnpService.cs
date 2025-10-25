@@ -33,7 +33,7 @@ namespace SimulatedAnnealing.Server.Services
 
                 var stan = stateBuilder
                     .SetVoivodeship(localResultsRequest).Result
-                    .CalculateInhabitants()
+                    .CalculateInhabitants(localResultsRequest.Year)
                     .CalculateVoievodianshipSeatsAmount()
                     .CalculatePopulationIndex()
                     .CalculateDistrictResults("JNP")
@@ -43,9 +43,14 @@ namespace SimulatedAnnealing.Server.Services
             }
 
             var okregi = stany.SelectMany(s => s.ActualConfiguration.ParliamentDistricts).ToList();
-            await allocationService.AllocateSeatsAsync(okregi);
-            double countryJNP = okregi.Sum(o => o.Population) / 460.0;
-            
+            await allocationService.AllocateSeatsAsync(okregi, year);
+            double countryJNP =
+                okregi.SelectMany(o => o.TerytCounties).SelectMany(t => t.CountyPopulations)
+                .Where(cp => cp.Year == year)
+                .Sum(cp => cp.Population) / 460;
+                
+
+
             var results = new List<JnpCheckResult>();
 
             foreach (var okreg in okregi)
@@ -60,7 +65,10 @@ namespace SimulatedAnnealing.Server.Services
                     DistrictId = okreg.Id,
                     SeatsCalculated = seatsCalculated,
                     SeatsDeclared = seatsDeclared,
-                    Inhibitants = okreg.Population,
+                    Inhibitants = okreg.TerytCounties
+                                .SelectMany(c => c.CountyPopulations)
+                                .Where(cp => cp.Year == year)
+                                .Sum(c => c.Population),
                     DistrictJNP = okreg.DistrictJNP,
                     CountryJNPRatio = okreg.DistrictJNP / countryJNP
                 };

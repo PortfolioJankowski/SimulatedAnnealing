@@ -50,10 +50,11 @@ public class AlgorithmController(
 
         var vvs = dbContext.Voivodeships
             .Include(v => v.ParliamentDistricts)
-            .ThenInclude(d => d.TerytCounties).ThenInclude(c => c.CountyPopulations);
+            .ThenInclude(d => d.TerytCounties).ThenInclude(c => c.CountyPopulations)
+            .ToList();
 
         var okregi = vvs.SelectMany(v => v.ParliamentDistricts).ToList();
-        await allocationService.AllocateSeatsAsync(okregi);
+        await allocationService.AllocateSeatsAsync(okregi, parliamentRequest.year);
 
         List<LocalOptimizedResults> optimizedResultsList = new();
 

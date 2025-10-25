@@ -9,6 +9,7 @@ public class ComplianceService
     {
         _configuration = configuration;
     }
+
     public static Dictionary<int, int> ParliamentDistrictsSeats2023 { get; } = new Dictionary<int, int>
     {
         // Numer okregu, liczba mandatow
@@ -62,11 +63,12 @@ public class ComplianceService
              .Sum(p => p.Inahabitants);
     }
 
-    public int GetVoivodeshipInhabitants(ICollection<ParliamentDistrict> districts)
+    public int GetVoivodeshipInhabitants(ICollection<ParliamentDistrict> districts, int year)
     {
         return districts
             .SelectMany(d => d.TerytCounties)
             .SelectMany(c => c.CountyPopulations)
+            .Where(p => p.Year == year)
             .Sum(p => p.Population);
     }
 

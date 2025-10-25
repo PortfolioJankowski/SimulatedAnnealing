@@ -6,7 +6,7 @@ namespace SimulatedAnnealing.Server.Services.Validators;
 
 public class OptimizeParliamentRequestValidator : AbstractValidator<OptimizeParliamentSeatsRequest>
 {
-    private int[] _availableYears = new int[1] { 2023 };
+    private int[] _availableYears = new int[2] { 2023, 2019 };
     public OptimizeParliamentRequestValidator()
     {
         RuleFor(x => x.year)

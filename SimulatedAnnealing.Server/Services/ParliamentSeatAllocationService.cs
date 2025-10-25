@@ -16,9 +16,13 @@ namespace SimulatedAnnealing.Server.Services
         /// Oblicza liczbę mandatów w okręgach zgodnie z art. 202 Kodeksu wyborczego.
         /// Zwraca listę ParliamentDistrict z uzupełnionymi polami SeatsToAllocate i DistrictJNP.
         /// </summary>
-        public async Task<List<ParliamentDistrict>> AllocateSeatsAsync(List<ParliamentDistrict> districts)
+        public async Task<List<ParliamentDistrict>> AllocateSeatsAsync(List<ParliamentDistrict> districts, int year)
         {
-            double totalPopulation = districts.Sum(d => d.Population);
+            double totalPopulation = districts.SelectMany(d => d.TerytCounties)
+                .SelectMany(c => c.CountyPopulations)
+                .Where(cp => cp.Year == year)
+                .Sum(cp => cp.Population);
+            
             const int totalSeats = 460;
 
             // Norma krajowa (jednolita)
@@ -27,11 +31,15 @@ namespace SimulatedAnnealing.Server.Services
             // Wylicz mandaty wg normy i zaokrąglenie wg §202 pkt 1
             foreach (var d in districts)
             {
-                double theoreticalSeats = d.Population / nationalNorm;
+                double theoreticalSeats = d.GetPopulationForYear(year) / nationalNorm;
                 int seatsRounded = (int)Math.Floor(theoreticalSeats + 0.5); // >=0.5 w górę
 
                 d.SeatsToAllocate = seatsRounded;
-                d.DistrictJNP = d.Population / (double)d.SeatsToAllocate; // lokalna norma przedstawicielstwa
+                d.DistrictJNP = d.TerytCounties
+                    .SelectMany(c => c.CountyPopulations)
+                    .Where(cp => cp.Year == year)
+                    .Sum(cp => cp.Population)
+                    / (double)d.SeatsToAllocate; // lokalna norma przedstawicielstwa
             }
 
             // Korekta jeśli suma != 460
@@ -49,7 +57,7 @@ namespace SimulatedAnnealing.Server.Services
                 for (int i = 0; i < toRemove; i++)
                 {
                     ordered[i].SeatsToAllocate--;
-                    ordered[i].DistrictJNP = ordered[i].Population / (double)ordered[i].SeatsToAllocate;
+                    ordered[i].DistrictJNP = ordered[i].GetPopulationForYear(year) / (double)ordered[i].SeatsToAllocate;
                 }
             }
             else if (sumSeats < totalSeats)
@@ -64,7 +72,7 @@ namespace SimulatedAnnealing.Server.Services
                 for (int i = 0; i < toAdd; i++)
                 {
                     ordered[i].SeatsToAllocate++;
-                    ordered[i].DistrictJNP = ordered[i].Population / (double)ordered[i].SeatsToAllocate;
+                    ordered[i].DistrictJNP = ordered[i].GetPopulationForYear(year) / (double)ordered[i].SeatsToAllocate;
                 }
             }
 

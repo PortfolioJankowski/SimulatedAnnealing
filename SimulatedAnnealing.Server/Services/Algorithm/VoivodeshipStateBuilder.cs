@@ -45,11 +45,11 @@ public class VoivodeshipStateBuilder
         _voivodeshipState.ActualConfiguration = await _dbRepository.GetVoivodeshipAsync(initialStateRequest);
         return this;
     }
-    public VoivodeshipStateBuilder CalculateInhabitants()
+    public VoivodeshipStateBuilder CalculateInhabitants(int year)
     {
         if (_isParliament)
         {
-            _voivodeshipState.VoivodeshipInhabitants = _complianceService.GetVoivodeshipInhabitants(_voivodeshipState.ActualConfiguration.ParliamentDistricts);
+            _voivodeshipState.VoivodeshipInhabitants = _complianceService.GetVoivodeshipInhabitants(_voivodeshipState.ActualConfiguration.ParliamentDistricts, year);
             return this;
         }
         _voivodeshipState.VoivodeshipInhabitants = _complianceService.GetVoivodeshipInhabitants(_voivodeshipState.ActualConfiguration.Districts);

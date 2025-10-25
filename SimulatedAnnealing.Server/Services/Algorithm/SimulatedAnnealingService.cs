@@ -33,7 +33,7 @@ public partial class SimulatedAnnealingService
         _algorithmConfigurationBuilder = algorithmConfigurationBuilder;
     }
 
-    //TODO -> SPRAWDZIĆ CZY APPLYSEATSADJUSTMENT DZIAŁA POPRAWNIE
+    //TODO -> SPRAWDZIĆ CZY APPLYSEATSADJUSTMENT DZIAŁA POPRAWNIE - tu ma problemy
     public async Task<LocalOptimizedResults> OptimizeParliamentDistrictRequest(OptimizeParliamentDistrictRequest request, Dictionary<int, int> seatsByDistrict)
     {
         _isParliament = true;
@@ -49,7 +49,7 @@ public partial class SimulatedAnnealingService
         _stateBuilder.SetParliament(_isParliament);
         var currentSolution = _stateBuilder
             .SetVoivodeship(localRequest.DistrictInformation).Result
-            .CalculateInhabitants()
+            .CalculateInhabitants(request.Year)
             .CalculateVoievodianshipSeatsAmount()
             .ApplySeatsAdjustment(seatsByDistrict) 
             .CalculatePopulationIndex()
@@ -107,7 +107,7 @@ public partial class SimulatedAnnealingService
 
         var currentSolution = _stateBuilder
             .SetVoivodeship(request.DistrictInformation).Result
-            .CalculateInhabitants()
+            .CalculateInhabitants(request.DistrictInformation.Year)
             .CalculateVoievodianshipSeatsAmount()
             .CalculatePopulationIndex()
             .CalculateDistrictResults(request.DistrictInformation.PoliticalParty)
